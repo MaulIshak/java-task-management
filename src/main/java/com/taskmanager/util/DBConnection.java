@@ -12,12 +12,12 @@ public class DBConnection {
     // JDBC Connection
     private Connection connection;
 
-    // Database config — sebaiknya dimasukkan ke file config/ENV kalau serius
+    // Database config
     private static final String URL = "jdbc:mysql://localhost:3306/task_management_db";
     private static final String USER = "root";
     private static final String PASSWORD = "";
 
-    // Private constructor: hanya singleton yang boleh membuat
+    // Private constructor
     private DBConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -42,7 +42,6 @@ public class DBConnection {
         return connection;
     }
 
-    // Tutup koneksi jika dibutuhkan
     public void close() {
         if (connection != null) {
             try {
