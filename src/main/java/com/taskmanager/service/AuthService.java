@@ -3,6 +3,7 @@ package com.taskmanager.service;
 import com.taskmanager.dao.UserDAO;
 import com.taskmanager.model.User;
 import com.taskmanager.util.PasswordUtils;
+import com.taskmanager.util.UserSession;
 
 import java.util.Optional;
 
@@ -21,12 +22,10 @@ public class AuthService {
         if (email == null || email.isEmpty()) throw new Exception("Email cannot be empty");
         if (plainPassword == null || plainPassword.length() < 6) throw new Exception("Password must be at least 6 characters");
 
-        // Cek apakah email sudah ada
         if (userDAO.findByEmail(email).isPresent()) {
             throw new Exception("Email already registered!");
         }
 
-        // Hash Password
         String hashedPassword = PasswordUtils.hashPassword(plainPassword);
 
         // Simpan ke DB
@@ -46,6 +45,7 @@ public class AuthService {
 
         // Verifikasi Password
         if (PasswordUtils.verifyPassword(plainPassword, user.getPasswordHash())) {
+            UserSession.getInstance().startSession(user);
             return user;
         } else {
             throw new Exception("Invalid password");
