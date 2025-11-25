@@ -1,0 +1,184 @@
+/* Global Styles */
+.root {
+    -fx-font-family: 'Segoe UI', sans-serif;
+    -fx-background-color: #f4f4f9;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: #2c3e50;
+    -fx-padding: 20;
+    -fx-min-width: 250px;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ecf0f1;
+    -fx-font-size: 14px;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+    -fx-padding: 10;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #34495e;
+}
+
+/* Content Area */
+.content-area {
+    -fx-background-color: white;
+    -fx-padding: 0; /* ScrollPane padding */
+}
+
+.content-area > .viewport {
+    -fx-background-color: white;
+}
+
+/* Documentation View */
+.doc-view {
+    -fx-padding: 40;
+    -fx-max-width: 800px;
+}
+
+.doc-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+    -fx-padding: 0 0 20 0;
+}
+
+.doc-description {
+    -fx-font-size: 16px;
+    -fx-text-fill: #7f8c8d;
+    -fx-padding: 0 0 30 0;
+}
+
+/* Documentation Sections */
+.doc-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ecf0f1;
+    -fx-border-width: 1px;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
+}
+
+.doc-section-header {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+}
+
+/* Code Snippets */
+.code-snippet {
+    -fx-font-family: 'Consolas', 'Monospace';
+    -fx-font-size: 12px;
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #e83e8c;
+    -fx-padding: 15;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+/* Custom Button Styles (kept from previous) */
+.custom-button {
+    -fx-background-color: #6200ea;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.custom-button:hover {
+    -fx-background-color: #3700b3;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);
+}
+
+.custom-button:pressed {
+    -fx-background-color: #000000;
+}
+
+/* --- CSS Demo Styles --- */
+
+/* ID Selector */
+#unique-id-demo {
+    -fx-background-color: #ffeb3b;
+    -fx-text-fill: #000;
+    -fx-border-color: #fbc02d;
+    -fx-border-width: 2px;
+    -fx-padding: 10;
+}
+
+/* Descendant Selector (.parent-demo .child-demo) */
+.parent-demo {
+    -fx-background-color: #e3f2fd;
+    -fx-padding: 15;
+    -fx-spacing: 10;
+    -fx-border-color: #2196f3;
+}
+
+.parent-demo .child-demo {
+    -fx-text-fill: #1565c0;
+    -fx-font-weight: bold;
+}
+
+/* Direct Child Selector (.parent-demo > .direct-child) */
+.parent-demo > .direct-child {
+    -fx-background-color: #bbdefb;
+    -fx-padding: 5;
+}
+
+/* Pseudo-class Demo */
+.pseudo-demo {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 10;
+    -fx-transition: -fx-background-color 0.2s;
+}
+
+.pseudo-demo:hover {
+    -fx-background-color: #b2dfdb;
+    -fx-cursor: hand;
+}
+
+/* --- Advanced Styling Demo --- */
+
+/* Linear Gradient */
+.linear-gradient-demo {
+    -fx-background-color: linear-gradient(to right, #ff7e5f, #feb47b);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 15;
+    -fx-background-radius: 5;
+}
+
+/* Radial Gradient */
+.radial-gradient-demo {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 50%, #2196f3, #0d47a1);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 20;
+    -fx-background-radius: 50%; /* Circular */
+}
+
+/* Drop Shadow Effect */
+.shadow-demo {
+    -fx-background-color: white;
+    -fx-padding: 15;
+    -fx-border-color: #ddd;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 5, 5);
+}
+
+/* CSS Variables (Looked-up Colors) */
+.root {
+    -fx-base-color: #6200ea; /* Define variable */
+}
+
+.variable-demo {
+    -fx-background-color: -fx-base-color; /* Use variable */
+    -fx-text-fill: white;
+    -fx-padding: 10;
+}
+
+
