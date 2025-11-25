@@ -63,8 +63,7 @@ public class UserDAO extends AbstractDAO<User> {
         );
     }
 
-    // --- Custom Method Spesifik User (Login butuh ini) ---
-
+    // --- Custom Method Spesifik User---
     public Optional<User> findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {

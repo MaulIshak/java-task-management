@@ -21,7 +21,7 @@ public class AuthService {
         if (email == null || email.isEmpty()) throw new Exception("Email cannot be empty");
         if (plainPassword == null || plainPassword.length() < 6) throw new Exception("Password must be at least 6 characters");
 
-        // 2. Cek apakah email sudah ada
+        // Cek apakah email sudah ada
         if (userDAO.findByEmail(email).isPresent()) {
             throw new Exception("Email already registered!");
         }
@@ -35,7 +35,7 @@ public class AuthService {
     }
 
     public User login(String email, String plainPassword) throws Exception {
-        // 1. Cari user berdasarkan email
+        // Cari user berdasarkan email
         Optional<User> userOpt = userDAO.findByEmail(email);
 
         if (userOpt.isEmpty()) {
@@ -44,7 +44,7 @@ public class AuthService {
 
         User user = userOpt.get();
 
-        // 2. Verifikasi Password
+        // Verifikasi Password
         if (PasswordUtils.verifyPassword(plainPassword, user.getPasswordHash())) {
             return user;
         } else {

@@ -8,11 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * FRAMEWORK-LIKE IMPLEMENTATION
- * Kelas ini menangani boilerplate code JDBC (Connection, Statement, ResultSet).
- * Kelas anak hanya perlu mendefinisikan Query dan Mapping.
- */
 public abstract class AbstractDAO<T extends BaseEntity> implements GenericDAO<T> {
 
     protected Connection getConnection() {
@@ -68,11 +63,6 @@ public abstract class AbstractDAO<T extends BaseEntity> implements GenericDAO<T>
     private T update(T entity) {
         try (PreparedStatement stmt = getConnection().prepareStatement(getUpdateQuery())) {
             setStatementParameters(stmt, entity);
-            // Biasanya parameter terakhir Update adalah ID
-            // Kita asumsikan setStatementParameters mengatur semua field KECUALI ID untuk klausa WHERE
-            // Ini limitasi implementasi sederhana, di framework asli lebih kompleks.
-            // Untuk solusi ini, kita override logic di UserDAO nanti atau tambahkan parameter ID manual di sini.
-            // Agar clean, kita buat method abstract tambahan setUpdateId.
             setUpdateId(stmt, entity);
 
             stmt.executeUpdate();
@@ -82,7 +72,7 @@ public abstract class AbstractDAO<T extends BaseEntity> implements GenericDAO<T>
         }
     }
 
-    // Helper untuk update ID parameter (biasanya index terakhir)
+    // Helper untuk update ID parameter
     protected abstract void setUpdateId(PreparedStatement stmt, T entity) throws SQLException;
 
     @Override

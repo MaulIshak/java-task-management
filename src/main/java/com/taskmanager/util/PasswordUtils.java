@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class PasswordUtils {
+    private PasswordUtils() {}
 
     public static String hashPassword(String plainPassword) {
         try {
