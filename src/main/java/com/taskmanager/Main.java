@@ -2,15 +2,11 @@ package com.taskmanager;
 
 import com.taskmanager.model.User;
 import com.taskmanager.service.AuthService;
-import com.taskmanager.util.DBConnection;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Main extends Application {
@@ -25,10 +21,9 @@ public class Main extends Application {
         stage.show();
     }
 
-    // Untuk demo konsol, kita jalankan logic di main sebelum launch UI
     public static void main(String[] args) {
 
-        // --- TEST BACKEND LOGIC (Tanpa UI) ---
+        // --- TEST BACKEND LOGIC ---
         System.out.println("=== SYSTEM START (CONSOLE TEST) ===");
         AuthService authService = new AuthService();
         Scanner scanner = new Scanner(System.in);

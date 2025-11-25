@@ -1,8 +1,11 @@
 package com.taskmanager.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DBConnection {
 
@@ -12,17 +15,22 @@ public class DBConnection {
     // JDBC Connection
     private Connection connection;
 
-    // Database config
-    private static final String URL = "jdbc:mysql://localhost:3306/task_management_db";
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
-
     // Private constructor
     private DBConnection() {
+        Properties prop = new Properties();
+        try (InputStream input = getClass().getResourceAsStream("/config.properties")) {
+            prop.load(input);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            this.connection = DriverManager.getConnection(
+                    "jdbc:mysql://"+prop.getProperty("DB_HOST")+":"+prop.getProperty("DB_PORT")+"/"+prop.getProperty("DB_NAME"),
+                    prop.getProperty("DB_USER"),
+                    prop.getProperty("DB_PASSWORD"));
 
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException("Gagal membuat koneksi ke database", e);
