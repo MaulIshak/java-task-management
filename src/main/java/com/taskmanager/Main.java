@@ -2,6 +2,8 @@ package com.taskmanager;
 
 import com.taskmanager.model.User;
 import com.taskmanager.service.AuthService;
+import com.taskmanager.view.MainLayout;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -13,10 +15,14 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        Label l = new Label("Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".");
-        Scene scene = new Scene(new StackPane(l), 640, 480);
+        stage.setTitle("JavaFX Documentation App");
+
+        MainLayout mainLayout = new MainLayout();
+        Scene scene = new Scene(mainLayout, 1024, 768);
+
+        // Load CSS
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+
         stage.setScene(scene);
         stage.show();
     }
