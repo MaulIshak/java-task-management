@@ -19,6 +19,10 @@ public class TaskService {
         this.taskDAO = new TaskDAO();
         this.userDAO = new UserDAO();
     }
+    public TaskService(TaskDAO taskDAO, UserDAO userDAO) {
+        this.taskDAO = taskDAO;
+        this.userDAO = userDAO;
+    }
 
     public Task createTask(int projectId, String title, String description, LocalDate dueDate, User assignee) throws Exception {
         // Validasi

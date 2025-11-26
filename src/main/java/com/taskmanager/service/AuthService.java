@@ -15,6 +15,10 @@ public class AuthService {
         this.userDAO = new UserDAO();
     }
 
+    public AuthService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
     // Return User object jika sukses, throw Exception jika gagal
     public User register(String name, String email, String plainPassword) throws Exception {
         // Validasi Input
