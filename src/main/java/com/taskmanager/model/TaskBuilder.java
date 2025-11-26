@@ -1,26 +1,28 @@
 package com.taskmanager.model;
-import com.taskmanager.model.enums.TaskStatus;
 
+import com.taskmanager.model.enums.TaskStatus;
 import java.time.LocalDate;
 
 public class TaskBuilder {
 
-    // Required
-    final int id;
-    final String title;
-    final User owner;
-
-    // Optional
+    // Fields
+    int id;
+    int projectId;
+    String title;
     String description = "";
-    LocalDate dueDate = LocalDate.now().plusDays(1);
+    LocalDate dueDate = LocalDate.now().plusDays(7); // Default 1 minggu
     TaskStatus status = TaskStatus.TODO;
     User assignee;
 
-    public TaskBuilder(int id, String title, User owner) {
-        this.id = id;
+    public TaskBuilder(int projectId, String title) {
+        this.projectId = projectId;
         this.title = title;
-        this.owner = owner;
-        this.assignee = owner; // default
+    }
+
+    public TaskBuilder(int id, int projectId, String title) {
+        this.id = id;
+        this.projectId = projectId;
+        this.title = title;
     }
 
     public TaskBuilder setDescription(String description) {
