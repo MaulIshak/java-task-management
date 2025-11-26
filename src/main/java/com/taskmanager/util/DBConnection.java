@@ -23,12 +23,11 @@ public class DBConnection {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("org.postgresql.Driver");
 
             this.connection = DriverManager.getConnection(
-                    "jdbc:mysql://"+prop.getProperty("DB_HOST")+":"+prop.getProperty("DB_PORT")+"/"+prop.getProperty("DB_NAME"),
+                    "jdbc:postgresql://"+prop.getProperty("DB_HOST")+":"+prop.getProperty("DB_PORT")+"/"+prop.getProperty("DB_NAME"),
                     prop.getProperty("DB_USER"),
                     prop.getProperty("DB_PASSWORD"));
 
