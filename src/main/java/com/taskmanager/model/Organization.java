@@ -1,13 +1,17 @@
 package com.taskmanager.model;
+
+import com.taskmanager.model.interfaces.BaseEntity;
 import com.taskmanager.model.interfaces.WorkComponent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Organization implements WorkComponent {
+// Mengimplementasikan kedua interface: WorkComponent (untuk getName, showDetails) dan BaseEntity (untuk DAO)
+public class Organization implements BaseEntity, WorkComponent {
 
-    private final int id;
+    // 1. Hapus 'final' agar ID bisa diubah oleh setId()
+    private int id;
     private final String orgName;
 
     private final List<Project> projects = new ArrayList<>();
@@ -18,9 +22,18 @@ public class Organization implements WorkComponent {
         this.orgName = name;
     }
 
+    // --- Implementasi BaseEntity ---
+    @Override
     public int getId() {
         return id;
     }
+
+    @Override
+    public void setId(int id) {
+        // 2. Tambahkan implementasi setter ID
+        this.id = id;
+    }
+    // --------------------------------
 
     public String getOrgName() {
         return orgName;
@@ -52,6 +65,7 @@ public class Organization implements WorkComponent {
         return Collections.unmodifiableList(members);
     }
 
+    // --- Implementasi WorkComponent ---
     @Override
     public String getName() {
         return orgName;
