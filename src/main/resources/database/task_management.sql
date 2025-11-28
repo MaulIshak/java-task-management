@@ -15,6 +15,7 @@ CREATE TABLE users (
 CREATE TABLE organizations (
                                id SERIAL PRIMARY KEY,
                                name VARCHAR(100) NOT NULL,
+                               code VARCHAR(6) NOT NULL,
                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
