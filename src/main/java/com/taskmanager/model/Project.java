@@ -1,77 +1,58 @@
 package com.taskmanager.model;
 
+import com.taskmanager.model.interfaces.BaseEntity;
 import com.taskmanager.model.interfaces.WorkComponent;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class Project implements WorkComponent {
+public class Project implements WorkComponent, BaseEntity {
 
-    private final int id;
-    private final String projectName;
-    private final String description;
+    private int id;
+    private int organizationId; // Foreign Key ke Organization
+    private String name;
+    private String description;
 
-    private final List<Task> tasks = new ArrayList<>();
-    private final List<User> members = new ArrayList<>();
+    // Relasi
+    private List<Task> tasks = new ArrayList<>();
 
-    public Project(int id, String name, String desc) {
+    public Project() {}
+
+    public Project(int id, int organizationId, String name, String description) {
         this.id = id;
-        this.projectName = name;
-        this.description = desc;
+        this.organizationId = organizationId;
+        this.name = name;
+        this.description = description;
     }
 
-    public int getId() {
-        return id;
-    }
+    // --- BaseEntity Impl ---
+    @Override
+    public int getId() { return id; }
+    @Override
+    public void setId(int id) { this.id = id; }
 
-    public String getProjectName() {
-        return projectName;
-    }
+    // --- Getters & Setters ---
+    public int getOrganizationId() { return organizationId; }
+    public void setOrganizationId(int organizationId) { this.organizationId = organizationId; }
 
-    public String getDescription() {
-        return description;
-    }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    // --- Task Operations ---
-    public void addTask(Task task) {
-        tasks.add(task);
-    }
-
-    public void removeTask(Task task) {
-        tasks.remove(task);
-    }
-
-    /**
-     * Return list read-only untuk keamanan
-     */
-    public List<Task> getTasks() {
-        return Collections.unmodifiableList(tasks);
-    }
-
-    // --- Member Operations ---
-    public void addMember(User user) {
-        members.add(user);
-    }
-
-    public void removeMember(User user) {
-        members.remove(user);
-    }
-
-    public List<User> getMembers() {
-        return Collections.unmodifiableList(members);
-    }
+    // --- List Operations ---
+    public List<Task> getTasks() { return tasks; }
+    public void setTasks(List<Task> tasks) { this.tasks = tasks; }
 
     @Override
-    public String getName() {
-        return projectName;
-    }
+    public String getName() { return name; }
 
     @Override
     public void showDetails() {
-        System.out.println("Project: " + projectName);
-        for (Task t : tasks) {
-            t.showDetails();
-        }
+        System.out.println("Project: " + name);
+    }
+
+    @Override
+    public String toString() {
+        return "Project{id=" + id + ", name='" + name + "'}";
     }
 }
