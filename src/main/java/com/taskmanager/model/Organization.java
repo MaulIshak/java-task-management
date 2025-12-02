@@ -7,75 +7,67 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// Mengimplementasikan kedua interface: WorkComponent (untuk getName, showDetails) dan BaseEntity (untuk DAO)
 public class Organization implements BaseEntity, WorkComponent {
 
-    // 1. Hapus 'final' agar ID bisa diubah oleh setId()
     private int id;
-    private final String orgName;
+    private String orgName;
+    private String code;   
 
-    private final List<Project> projects = new ArrayList<>();
-    private final List<User> members = new ArrayList<>();
+    private List<Project> projects = new ArrayList<>(); 
+    private List<User> members = new ArrayList<>();
 
-    public Organization(int id, String name) {
+    public Organization() {} 
+
+    public Organization(int id, String name, String code) {
         this.id = id;
         this.orgName = name;
+        this.code = code;
     }
 
-    // --- Implementasi BaseEntity ---
+    public Organization(int id, String name) {
+        this(id, name, null); 
+    }
+
     @Override
-    public int getId() {
-        return id;
-    }
-
+    public int getId() { return id; }
     @Override
-    public void setId(int id) {
-        // 2. Tambahkan implementasi setter ID
-        this.id = id;
-    }
-    // --------------------------------
+    public void setId(int id) { this.id = id; }
 
-    public String getOrgName() {
-        return orgName;
-    }
+    // --- Getters & Setters ---
+    public String getOrgName() { return orgName; }
+    public void setOrgName(String orgName) { this.orgName = orgName; }
+
+    public String getCode() { return code; } 
+    public void setCode(String code) { this.code = code; } 
 
     // --- Project operations ---
-    public void addProject(Project project) {
-        projects.add(project);
-    }
+    public void addProject(Project project) { projects.add(project); }
+    public void removeProject(Project project) { projects.remove(project); }
 
-    public void removeProject(Project project) {
-        projects.remove(project);
-    }
-
-    public List<Project> getProjects() {
-        return Collections.unmodifiableList(projects);
-    }
+    public List<Project> getProjects() { return Collections.unmodifiableList(projects); }
+    public void setProjects(List<Project> projects) { this.projects = projects; }
 
     // --- Member operations ---
-    public void addMember(User user) {
-        members.add(user);
-    }
+    public void addMember(User user) { members.add(user); }
+    public void removeMember(User user) { members.remove(user); }
 
-    public void removeMember(User user) {
-        members.remove(user);
-    }
-
-    public List<User> getMembers() {
-        return Collections.unmodifiableList(members);
-    }
+    public List<User> getMembers() { return Collections.unmodifiableList(members); }
+    public void setMembers(List<User> members) { this.members = members; }
 
     // --- Implementasi WorkComponent ---
     @Override
-    public String getName() {
-        return orgName;
-    }
+    public String getName() { return orgName; }
 
     @Override
     public void showDetails() {
-        System.out.println("Organization: " + orgName);
+        System.out.println("Organization: " + orgName + " (Code: " + code + ")");
         for (Project project : projects) {
             project.showDetails();
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "Organization{id=" + id + ", name='" + orgName + "', code='" + code + "'}";
     }
 }

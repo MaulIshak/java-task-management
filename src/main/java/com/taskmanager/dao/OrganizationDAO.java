@@ -4,6 +4,7 @@ import com.taskmanager.model.Organization;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 
 /**
  * Implementasi konkret untuk Organization.
@@ -18,24 +19,24 @@ public class OrganizationDAO extends AbstractDAO<Organization> {
 
     @Override
     protected String getInsertQuery() {
-        // SQL: INSERT INTO organizations (name) VALUES (?)
-        return "INSERT INTO " + getTableName() + " (name) VALUES (?)";
+        // SQL: INSERT INTO organizations (name, code) VALUES (?, ?)
+        return "INSERT INTO " + getTableName() + " (name, code) VALUES (?, ?)";
     }
 
     @Override
     protected String getUpdateQuery() {
-        // SQL: UPDATE organizations SET name = ? WHERE id = ?
-        return "UPDATE " + getTableName() + " SET name = ? WHERE id = ?";
+        // SQL: UPDATE organizations SET name = ?, code = ? WHERE id = ?
+        return "UPDATE " + getTableName() + " SET name = ?, code = ? WHERE id = ?";
     }
 
     @Override
     protected String getSelectByIdQuery() {
-        return "SELECT id, name FROM " + getTableName() + " WHERE id = ?";
+        return "SELECT id, name, code FROM " + getTableName() + " WHERE id = ?";
     }
 
     @Override
     protected String getSelectAllQuery() {
-        return "SELECT id, name FROM " + getTableName();
+        return "SELECT id, name, code FROM " + getTableName();
     }
 
     @Override
@@ -47,24 +48,42 @@ public class OrganizationDAO extends AbstractDAO<Organization> {
     protected void setStatementParameters(PreparedStatement stmt, Organization organization) throws SQLException {
         // Parameter 1: name
         stmt.setString(1, organization.getOrgName());
+        // Parameter 2: code
+        stmt.setString(2, organization.getCode());
     }
 
     @Override
     protected void setUpdateId(PreparedStatement stmt, Organization organization) throws SQLException {
-        // Parameter untuk klausa WHERE di Update Query: id
-        stmt.setInt(2, organization.getId());
+        stmt.setInt(3, organization.getId());
     }
 
     @Override
     protected Organization mapResultSetToEntity(ResultSet rs) throws SQLException {
-        // Karena model Organization yang tersedia tidak memiliki setter selain setId, 
-        // kita menggunakan constructor yang ada dan setId dari BaseEntity di AbstractDAO.
         int id = rs.getInt("id");
         String name = rs.getString("name");
-        
-        Organization organization = new Organization(id, name);
-        // Penting: List projects dan members tidak dimuat di DAO ini (Lazy/Eager loading decision)
+        String code = rs.getString("code");
+        Organization organization = new Organization(id, name, code);
         
         return organization;
+    }
+
+    // --- Custom Query ---
+    /**
+     * Mencari organisasi berdasarkan kode unik.
+     * Dibutuhkan untuk fitur Join Organization.
+     */
+    public Optional<Organization> findByCode(String code) {
+        String sql = "SELECT id, name, code FROM " + getTableName() + " WHERE code = ?";
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setString(1, code);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToEntity(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 }
