@@ -11,8 +11,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public class RegisterView extends VBox {
-    private MainLayout mainLayout;
-    private AuthService authService;
+    private final MainLayout mainLayout;
+    private final AuthService authService;
 
     public RegisterView(MainLayout mainLayout) {
         this.mainLayout = mainLayout;
@@ -40,57 +40,33 @@ public class RegisterView extends VBox {
         hbox.setAlignment(Pos.CENTER_LEFT);
         hbox.getChildren().add(titleLabel);
 
-        Label nameLabel = new Label("Name");
-        nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox nameBox = new HBox();
+        // Name Field
+        Label nameLabel = createStyledLabel("Name");
+        HBox nameBox = new HBox(nameLabel);
         nameBox.setAlignment(Pos.CENTER_LEFT);
-        nameBox.getChildren().addAll(nameLabel);
 
-        TextField nameField = new TextField();
-        nameField.setPromptText("Name");
-        nameField.setMaxWidth(Double.MAX_VALUE);
-        nameField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        nameField.getStyleClass().add("text-field");
+        TextField nameField = createStyledTextField("Name");
 
-        Label emailLabel = new Label("Email");
-        emailLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox emailBox = new HBox();
+        // Email Field
+        Label emailLabel = createStyledLabel("Email");
+        HBox emailBox = new HBox(emailLabel);
         emailBox.setAlignment(Pos.CENTER_LEFT);
-        emailBox.getChildren().addAll(emailLabel);
 
-        TextField emailField = new TextField();
-        emailField.setPromptText("Email");
-        emailField.setMaxWidth(Double.MAX_VALUE);
-        emailField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        emailField.getStyleClass().add("text-field");
+        TextField emailField = createStyledTextField("Email");
 
-        Label passwordLabel = new Label("Password");
-        passwordLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox passwordBox = new HBox();
+        // Password Field
+        Label passwordLabel = createStyledLabel("Password");
+        HBox passwordBox = new HBox(passwordLabel);
         passwordBox.setAlignment(Pos.CENTER_LEFT);
-        passwordBox.getChildren().addAll(passwordLabel);
 
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
-        passwordField.setMaxWidth(Double.MAX_VALUE);
-        passwordField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        passwordField.getStyleClass().add("text-field");
+        PasswordField passwordField = createStyledPasswordField("Password");
 
-        Label confirmPasswordLabel = new Label("Confirm Password");
-        confirmPasswordLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox confirmPasswordBox = new HBox();
+        // Confirm Password Field
+        Label confirmPasswordLabel = createStyledLabel("Confirm Password");
+        HBox confirmPasswordBox = new HBox(confirmPasswordLabel);
         confirmPasswordBox.setAlignment(Pos.CENTER_LEFT);
-        confirmPasswordBox.getChildren().addAll(confirmPasswordLabel);
 
-        PasswordField confirmPasswordField = new PasswordField();
-        confirmPasswordField.setPromptText("Confirm Password");
-        confirmPasswordField.setMaxWidth(Double.MAX_VALUE);
-        confirmPasswordField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        confirmPasswordField.getStyleClass().add("text-field");
+        PasswordField confirmPasswordField = createStyledPasswordField("Confirm Password");
 
         Label confirmPasswordErrorLabel = new Label();
         confirmPasswordErrorLabel.setTextFill(Color.RED);
@@ -108,7 +84,8 @@ public class RegisterView extends VBox {
 
         Button registerButton = new Button("Register");
         registerButton.setMaxWidth(Double.MAX_VALUE);
-        registerButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
+        registerButton.setStyle(
+                "-fx-background-color: #007bff; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
 
         registerButton.setOnAction(e -> {
             try {
@@ -116,9 +93,16 @@ public class RegisterView extends VBox {
                 errorLabel.setTextFill(Color.GREEN);
                 errorLabel.setText("Registration successful!");
 
-                Thread.sleep(1000);
+                // Use a separate thread to wait before switching view to avoid blocking UI
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                        javafx.application.Platform.runLater(() -> mainLayout.showLogin());
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
 
-                mainLayout.showLogin();
             } catch (Exception ex) {
                 errorLabel.setTextFill(Color.RED);
                 errorLabel.setText(ex.getMessage());
@@ -128,9 +112,37 @@ public class RegisterView extends VBox {
         Button backToLoginButton = new Button("Back to Login");
         backToLoginButton.setOnAction(e -> mainLayout.showLogin());
         backToLoginButton.setMaxWidth(Double.MAX_VALUE);
-        backToLoginButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #007bff; -fx-padding: 10; -fx-background-radius: 5; -fx-cursor: hand;");
+        backToLoginButton.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #007bff; -fx-padding: 10; -fx-background-radius: 5; -fx-cursor: hand;");
 
-        card.getChildren().addAll(hbox, nameBox, nameField, emailBox, emailField, passwordBox, passwordField, confirmPasswordBox, confirmPasswordField, registerButton, backToLoginButton, errorLabel);
+        card.getChildren().addAll(hbox, nameBox, nameField, emailBox, emailField, passwordBox, passwordField,
+                confirmPasswordBox, confirmPasswordField, registerButton, backToLoginButton, errorLabel);
         getChildren().add(card);
+    }
+
+    private Label createStyledLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
+        return label;
+    }
+
+    private TextField createStyledTextField(String prompt) {
+        TextField field = new TextField();
+        field.setPromptText(prompt);
+        field.setMaxWidth(Double.MAX_VALUE);
+        field.setStyle(
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+        field.getStyleClass().add("text-field");
+        return field;
+    }
+
+    private PasswordField createStyledPasswordField(String prompt) {
+        PasswordField field = new PasswordField();
+        field.setPromptText(prompt);
+        field.setMaxWidth(Double.MAX_VALUE);
+        field.setStyle(
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+        field.getStyleClass().add("text-field");
+        return field;
     }
 }

@@ -1,29 +1,28 @@
 package com.taskmanager.view;
 
-import com.taskmanager.Main;
-
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 public class Navbar extends HBox {
 
-    private MainLayout mainLayout;
+    private final Label titleLabel;
 
-    public Navbar(MainLayout mainLayout) {
-        this.mainLayout = mainLayout;
+    public Navbar() {
         getStyleClass().add("navbar");
         setAlignment(Pos.CENTER_LEFT);
-        setSpacing(10);
+        setSpacing(20);
 
-        addNavButton("Logout", "Login");
+        // Title (Dynamic)
+        titleLabel = new Label("Dashboard");
+        titleLabel.getStyleClass().add("navbar-title");
+        getChildren().add(titleLabel);
     }
 
-    private void addNavButton(String label, String viewName) {
-        Button btn = new Button(label);
-        btn.getStyleClass().add("navbar-button");
-        btn.setOnAction(e -> mainLayout.switchView(viewName));
-        getChildren().add(btn);
+    public void setTitle(String title) {
+        titleLabel.setText(title);
     }
-
 }

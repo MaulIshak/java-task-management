@@ -12,8 +12,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public class LoginView extends VBox {
-    private MainLayout mainLayout;
-    private AuthService authService;
+    private final MainLayout mainLayout;
+    private final AuthService authService;
 
     public LoginView(MainLayout mainLayout) {
         this.mainLayout = mainLayout;
@@ -41,31 +41,19 @@ public class LoginView extends VBox {
         titleBox.setAlignment(Pos.CENTER_LEFT);
         titleBox.getChildren().add(titleLabel);
 
-        Label emailLabel = new Label("Email");
-        emailLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox emailBox = new HBox();
+        // Email Field
+        Label emailLabel = createStyledLabel("Email");
+        HBox emailBox = new HBox(emailLabel);
         emailBox.setAlignment(Pos.CENTER_LEFT);
-        emailBox.getChildren().addAll(emailLabel);
 
-        TextField emailField = new TextField();
-        emailField.setPromptText("Email");
-        emailField.setMaxWidth(Double.MAX_VALUE);
-        emailField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        emailField.getStyleClass().add("text-field");
+        TextField emailField = createStyledTextField("Email");
 
-        Label passwordLabel = new Label("Password");
-        passwordLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        HBox passwordBox = new HBox();
+        // Password Field
+        Label passwordLabel = createStyledLabel("Password");
+        HBox passwordBox = new HBox(passwordLabel);
         passwordBox.setAlignment(Pos.CENTER_LEFT);
-        passwordBox.getChildren().addAll(passwordLabel);
 
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
-        passwordField.setMaxWidth(Double.MAX_VALUE);
-        passwordField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
-        passwordField.getStyleClass().add("text-field");
+        PasswordField passwordField = createStyledPasswordField("Password");
 
         Label errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
@@ -73,7 +61,8 @@ public class LoginView extends VBox {
 
         Button loginButton = new Button("Login");
         loginButton.setMaxWidth(Double.MAX_VALUE);
-        loginButton.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
+        loginButton.setStyle(
+                "-fx-background-color: #007bff; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
         loginButton.setOnAction(e -> {
             try {
                 authService.login(emailField.getText(), passwordField.getText());
@@ -87,7 +76,34 @@ public class LoginView extends VBox {
         goToRegisterButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #007bff; -fx-cursor: hand;");
         goToRegisterButton.setOnAction(e -> mainLayout.showRegister());
 
-        card.getChildren().addAll(titleBox, emailBox, emailField, passwordBox, passwordField, loginButton, goToRegisterButton, errorLabel);
+        card.getChildren().addAll(titleBox, emailBox, emailField, passwordBox, passwordField, loginButton,
+                goToRegisterButton, errorLabel);
         getChildren().add(card);
+    }
+
+    private Label createStyledLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
+        return label;
+    }
+
+    private TextField createStyledTextField(String prompt) {
+        TextField field = new TextField();
+        field.setPromptText(prompt);
+        field.setMaxWidth(Double.MAX_VALUE);
+        field.setStyle(
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+        field.getStyleClass().add("text-field");
+        return field;
+    }
+
+    private PasswordField createStyledPasswordField(String prompt) {
+        PasswordField field = new PasswordField();
+        field.setPromptText(prompt);
+        field.setMaxWidth(Double.MAX_VALUE);
+        field.setStyle(
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+        field.getStyleClass().add("text-field");
+        return field;
     }
 }
