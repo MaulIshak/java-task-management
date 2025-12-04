@@ -8,18 +8,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 
 import com.taskmanager.model.interfaces.Observer;
+import com.taskmanager.service.OrganizationService;
+import com.taskmanager.service.ProjectService;
+import com.taskmanager.service.TaskService;
 import com.taskmanager.util.UserSession;
 
-/**
- * The main layout of the application.
- * <p>
- * This class acts as the central hub for the application's UI flow.
- * It manages the navigation between different views (Dashboard, Login,
- * Register, etc.)
- * and handles the display of the Sidebar and Navbar based on the user's login
- * state.
- * </p>
- */
 public class MainLayout extends BorderPane implements Observer {
 
     private final ScrollPane contentArea;
@@ -27,8 +20,18 @@ public class MainLayout extends BorderPane implements Observer {
     private Navbar navbar;
     private VBox mainContent;
 
+    // Services
+    private final OrganizationService organizationService;
+    private final ProjectService projectService;
+    private final TaskService taskService;
+
     public MainLayout() {
         getStyleClass().add("main-layout");
+
+        // Initialize Services
+        this.organizationService = new OrganizationService();
+        this.projectService = new ProjectService();
+        this.taskService = new TaskService();
 
         // Content Area
         contentArea = new ScrollPane();
@@ -38,16 +41,12 @@ public class MainLayout extends BorderPane implements Observer {
 
         // Register as observer
         UserSession.getInstance().registerObserver(this);
+        
 
         // Initial check
         update();
     }
 
-    /**
-     * Updates the layout based on the user's session state.
-     * If logged in, shows the main application UI (Sidebar, Navbar, Content).
-     * If not logged in, shows the Login view.
-     */
     @Override
     public void update() {
         if (UserSession.getInstance().isLoggedIn()) {
@@ -64,7 +63,9 @@ public class MainLayout extends BorderPane implements Observer {
 
     private void setupMainLayout() {
         if (sidebar == null) {
-            sidebar = new Sidebar(this);
+            sidebar = new Sidebar(this, organizationService, projectService);
+        } else {
+            sidebar.refresh(); // Refresh sidebar data on re-login or update
         }
 
         if (navbar == null) {
@@ -95,30 +96,38 @@ public class MainLayout extends BorderPane implements Observer {
         setCenter(new RegisterView(this));
     }
 
-    /**
-     * Switches the content area to the specified view.
-     * 
-     * @param viewName The name of the view to switch to.
-     */
     public void switchView(String viewName) {
-        Node view = createView(viewName);
-
-        if (view != null) {
-            contentArea.setContent(view);
-            if (navbar != null) {
-                navbar.setTitle(viewName);
+        if (viewName.startsWith("organization:")) {
+            try {
+                int orgId = Integer.parseInt(viewName.split(":")[1]);
+                contentArea.setContent(new OrganizationDetailView(orgId, organizationService, projectService));
+                navbar.setTitle("Organization Details");
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid Organization ID: " + viewName);
+            }
+        } else if (viewName.startsWith("Project:")) {
+            try {
+                int projectId = Integer.parseInt(viewName.split(":")[1]);
+                contentArea.setContent(new ProjectDetailView(projectId, projectService, taskService));
+                navbar.setTitle("Project Details");
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid Project ID: " + viewName);
             }
         } else {
-            showPlaceholder(viewName);
-        }
-    }
-
-    private Node createView(String viewName) {
-        switch (viewName) {
-            case "Dashboard":
-                return new DashboardView();
-            default:
-                return null;
+            switch (viewName) {
+                case "Dashboard":
+                    contentArea.setContent(new DashboardView(organizationService, projectService, taskService));
+                    if (navbar != null)
+                        navbar.setTitle("Dashboard");
+                    break;
+                case "Settings":
+                    // contentArea.setContent(new Label("Settings View"));
+                    if (navbar != null)
+                        navbar.setTitle("Settings");
+                    break;
+                default:
+                    System.out.println("Unknown view: " + viewName);
+            }
         }
     }
 
@@ -126,5 +135,17 @@ public class MainLayout extends BorderPane implements Observer {
         Label placeholder = new Label("View: " + viewName);
         placeholder.setStyle("-fx-font-size: 24px; -fx-padding: 20;");
         contentArea.setContent(placeholder);
+    }
+
+    public OrganizationService getOrganizationService() {
+        return organizationService;
+    }
+
+    public ProjectService getProjectService() {
+        return projectService;
+    }
+
+    public TaskService getTaskService() {
+        return taskService;
     }
 }
