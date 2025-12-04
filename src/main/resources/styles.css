@@ -4,50 +4,6 @@
     -fx-background-color: #f4f4f9;
 }
 
-/* Sidebar */
-.sidebar {
-    -fx-background-color: #2c3e50;
-    -fx-padding: 20;
-    -fx-min-width: 250px;
-}
-
-.sidebar-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #ecf0f1;
-    -fx-font-size: 14px;
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-    -fx-padding: 10;
-}
-
-.navbar {
-    -fx-background-color: #2c3e50;
-    -fx-padding: 10;
-}
-
-.navbar-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #ecf0f1;
-    -fx-font-size: 14px;
-    -fx-alignment: center-left;
-    -fx-cursor: hand;
-    -fx-padding: 10;
-}
-
-.sidebar-button:hover {
-    -fx-background-color: #34495e;
-}
-
-/* Content Area */
-.content-area {
-    -fx-background-color: white;
-    -fx-padding: 0; /* ScrollPane padding */
-}
-
-.content-area > .viewport {
-    -fx-background-color: white;
-}
-
 .text-field, .text-field:active, .text-field:focus {
     -fx-font-family: "Poppins";
     -fx-font-size: 14;
@@ -60,4 +16,178 @@
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
     -fx-effect: null;
+}
+
+/* --- Zenith Dashboard Styles --- */
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 20;
+    -fx-min-width: 250px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-logo {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+    -fx-padding: 0 0 30 0;
+}
+
+.sidebar-section-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #999;
+    -fx-padding: 20 0 10 10;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #e9ecef;
+    -fx-text-fill: #333;
+}
+
+.sidebar-button.active {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: #1976d2;
+    -fx-font-weight: bold;
+}
+
+/* Navbar */
+.navbar {
+    -fx-background-color: white;
+    -fx-padding: 15 30;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.navbar-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.primary-button {
+    -fx-background-color: #2962ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1565c0;
+}
+
+/* Dashboard View */
+.dashboard-view {
+    -fx-background-color: #f4f6f8;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.dashboard-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
+    -fx-padding: 20;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 10;
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.card-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
+}
+
+.card-members {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+}
+
+.progress-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888;
+}
+
+.progress-value {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.custom-progress-bar .track {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 4;
+}
+
+.custom-progress-bar .bar {
+    -fx-background-color: #2962ff;
+    -fx-background-radius: 4;
+    -fx-padding: 3px;
+}
+
+/* Task Item */
+.task-item {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8;
+}
+
+.task-checkbox {
+    -fx-min-width: 20px;
+    -fx-min-height: 20px;
+    -fx-max-width: 20px;
+    -fx-max-height: 20px;
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.task-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.task-project {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+}
+
+.task-tag {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: #1976d2;
+    -fx-font-size: 11px;
+    -fx-padding: 4 8;
+    -fx-background-radius: 12;
+}
+
+.task-date {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
 }
