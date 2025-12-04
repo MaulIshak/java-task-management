@@ -6,16 +6,15 @@ import com.taskmanager.model.Project;
 import com.taskmanager.model.Task;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 public class ProjectService {
 
     private final ProjectDAO projectDAO;
-    private final TaskDAO taskDAO; // untuk fetch tasks
+    private final TaskDAO taskDAO;
 
     public ProjectService() {
-        this.projectDAO = new ProjectDAO();
-        this.taskDAO = new TaskDAO();
+        this(new ProjectDAO(), new TaskDAO());
     }
 
     public ProjectService(ProjectDAO projectDAO, TaskDAO taskDAO) {
@@ -23,50 +22,49 @@ public class ProjectService {
         this.taskDAO = taskDAO;
     }
 
-    // 1. Create Project
-    public Project createProject(int organizationId, String name, String description) throws Exception {
+    public Project createProject(int organizationId, String name, String description) {
+        // Validasi input
         if (name == null || name.trim().isEmpty()) {
-            throw new Exception("Project name cannot be empty");
+            throw new IllegalArgumentException("Project name cannot be empty");
         }
+
         Project project = new Project(0, organizationId, name, description);
         return projectDAO.save(project);
     }
 
-    // 2. Get List Project by Org (Ringan - Tanpa Task)
     public List<Project> getProjectsByOrganization(int organizationId) {
         return projectDAO.findByOrganizationId(organizationId);
     }
 
-    // 3. Get Full Project Details (Berat - Dengan Task)
-    public Project getProjectWithTasks(int projectId) throws Exception {
-        Optional<Project> projectOpt = projectDAO.findById(projectId);
-
-        if (projectOpt.isEmpty()) {
-            throw new Exception("Project not found");
-        }
-
-        Project project = projectOpt.get();
+    public Project getProjectWithTasks(int projectId) {
+        // Menggunakan idiom Optional.orElseThrow agar lebih bersih
+        Project project = projectDAO.findById(projectId)
+                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + projectId));
 
         // Fetch tasks from DB
         List<Task> tasks = taskDAO.findByProjectId(projectId);
-        project.setTasks(tasks); // Pasang ke object project
+        project.setTasks(tasks);
 
         return project;
     }
 
-    // 4. Update Project
-    public void updateProject(Project project, String newName, String newDesc) throws Exception {
+    public void updateProject(Project project, String newName, String newDesc) {
+        // Validasi argumen object
+        if (project == null) {
+            throw new IllegalArgumentException("Project object cannot be null");
+        }
+
+        // Validasi input data baru
         if (newName == null || newName.trim().isEmpty()) {
-            throw new Exception("New name cannot be empty");
+            throw new IllegalArgumentException("New name cannot be empty");
         }
 
         project.setName(newName);
         project.setDescription(newDesc);
 
-        projectDAO.save(project); // Auto Update karena ID != 0
+        projectDAO.save(project);
     }
 
-    // 5. Delete Project
     public void deleteProject(int projectId) {
         projectDAO.delete(projectId);
     }

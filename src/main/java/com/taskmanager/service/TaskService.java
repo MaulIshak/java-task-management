@@ -16,17 +16,18 @@ public class TaskService {
     private final UserDAO userDAO;
 
     public TaskService() {
-        this.taskDAO = new TaskDAO();
-        this.userDAO = new UserDAO();
+        this(new TaskDAO(), new UserDAO());
     }
+
     public TaskService(TaskDAO taskDAO, UserDAO userDAO) {
         this.taskDAO = taskDAO;
         this.userDAO = userDAO;
     }
 
-    public Task createTask(int projectId, String title, String description, LocalDate dueDate, User assignee) throws Exception {
-        // Validasi
-        if (title == null || title.isEmpty()) throw new Exception("Title required");
+    public Task createTask(int projectId, String title, String description, LocalDate dueDate, User assignee) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Task title cannot be empty");
+        }
 
         Task newTask = new TaskBuilder(projectId, title)
                 .setDescription(description)
@@ -38,7 +39,15 @@ public class TaskService {
         return taskDAO.save(newTask);
     }
 
+
     public void updateTaskStatus(Task task, TaskStatus newStatus) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task to update cannot be null");
+        }
+        if (newStatus == null) {
+            throw new IllegalArgumentException("New status cannot be null");
+        }
+
         task.setStatus(newStatus);
         taskDAO.save(task);
     }
@@ -46,7 +55,7 @@ public class TaskService {
     public List<Task> getTasksByProject(int projectId) {
         List<Task> tasks = taskDAO.findByProjectId(projectId);
 
-        // Isi data assignee
+        // Populate Assignee Details
         for (Task t : tasks) {
             if (t.getAssignee() != null) {
                 userDAO.findById(t.getAssignee().getId())
