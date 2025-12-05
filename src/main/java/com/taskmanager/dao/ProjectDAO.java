@@ -48,7 +48,6 @@ public class ProjectDAO extends AbstractDAO<Project> {
 
     @Override
     protected Project mapResultSetToEntity(ResultSet rs) throws SQLException {
-        // Tasks list dibiarkan kosong (Lazy Loading).
         return new Project(
                 rs.getInt("id"),
                 rs.getInt("organization_id"),

@@ -119,7 +119,9 @@ public class DashboardView extends VBox implements Observer, View {
             orgs.forEach(org -> {
                 double totalProgress = 0;
                 int projectCount = 0;
+
                 List<Project> projects = projectService.getProjectsByOrganization(org.getId());
+                
                 for (Project p : projects) {
                     List<Task> tasks = taskService.getTasksByProject(p.getId());
                     if (!tasks.isEmpty()) {
@@ -128,6 +130,7 @@ public class DashboardView extends VBox implements Observer, View {
                     }
                     projectCount++;
                 }
+
                 double avgProgress = projectCount > 0 ? totalProgress / projectCount : 0.0;
 
                 VBox card = createGenericCard(org.getOrgName(), null, org.getMembers().size() + " Members", avgProgress,

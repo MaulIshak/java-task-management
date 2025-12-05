@@ -22,7 +22,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -166,6 +165,15 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
 
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        setupDragAndDrop(column, title);
+
+        column.getChildren().add(scrollPane);
+        return column;
+    }
+
+    private void setupDragAndDrop(VBox column, String title) {
         column.setOnDragOver(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -179,28 +187,29 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
             if (db.hasString()) {
                 try {
                     int taskId = Integer.parseInt(db.getString());
-                    TaskStatus newStatus = null;
-                    if ("Todo".equals(title))
-                        newStatus = TaskStatus.TODO;
-                    else if ("In Progress".equals(title))
-                        newStatus = TaskStatus.ON_PROGRESS;
-                    else if ("Done".equals(title))
-                        newStatus = TaskStatus.DONE;
+                    TaskStatus newStatus = getStatusFromTitle(title);
 
                     if (newStatus != null) {
                         updateTaskStatus(taskId, newStatus);
                         success = true;
                     }
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Invalid task ID in dragboard", e);
                 }
             }
             event.setDropCompleted(success);
             event.consume();
         });
+    }
 
-        column.getChildren().add(scrollPane);
-        return column;
+    private TaskStatus getStatusFromTitle(String title) {
+        if ("Todo".equals(title))
+            return TaskStatus.TODO;
+        if ("In Progress".equals(title))
+            return TaskStatus.ON_PROGRESS;
+        if ("Done".equals(title))
+            return TaskStatus.DONE;
+        return null;
     }
 
     private VBox createTaskCard(Task task) {
@@ -221,9 +230,6 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
         MenuButton optionsMenu = new MenuButton("...");
         optionsMenu.getStyleClass().add("task-menu-button");
 
-        MenuItem editItem = new MenuItem("Edit");
-        editItem.setOnAction(e -> LOGGER.info("Edit task feature not implemented yet. Task ID: " + task.getId()));
-
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setOnAction(e -> {
             try {
@@ -234,7 +240,7 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
             }
         });
 
-        optionsMenu.getItems().addAll(editItem, deleteItem);
+        optionsMenu.getItems().addAll(deleteItem);
         header.getChildren().addAll(titleLabel, spacer, optionsMenu);
         card.getChildren().add(header);
 

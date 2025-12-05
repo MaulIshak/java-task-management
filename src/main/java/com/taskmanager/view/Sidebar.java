@@ -2,7 +2,6 @@ package com.taskmanager.view;
 
 import com.taskmanager.model.Organization;
 import com.taskmanager.model.Project;
-import com.taskmanager.model.User;
 import com.taskmanager.model.interfaces.Observer;
 import com.taskmanager.service.OrganizationService;
 import com.taskmanager.service.ProjectService;
@@ -223,7 +222,7 @@ public class Sidebar extends VBox implements Observer {
         HBox box = new HBox(10);
         box.setAlignment(Pos.TOP_LEFT);
 
-        Label icon = new Label("Z");
+        Label icon = new Label("J");
         icon.getStyleClass().add("sidebar-logo-icon");
 
         Label text = new Label("Java Task Management");

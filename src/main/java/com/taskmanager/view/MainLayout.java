@@ -87,7 +87,7 @@ public class MainLayout extends BorderPane implements Observer {
         Node viewContent = ViewFactory.getInstance().getView(viewName);
         contentArea.setContent(viewContent);
         if (sidebar != null) {
-            sidebar.setActive(viewName); // highlight sidebar selection
+            sidebar.setActive(viewName);
         }
     }
 }

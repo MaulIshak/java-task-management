@@ -11,7 +11,6 @@ import com.taskmanager.util.UserSession;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class OrganizationService implements com.taskmanager.model.interfaces.Subject {
 
@@ -77,7 +76,7 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
             memberDAO.addMember(newOrganization.getId(), currentUser.getId(), "OWNER");
         } catch (SQLException e) {
             organizationDAO.delete(newOrganization.getId());
-            throw new RuntimeException("Failed to add user as organization owner. Transaction aborted.", e);
+            throw new IllegalStateException("Failed to add user as organization owner. Transaction aborted.", e);
         }
 
         notifyObservers();
@@ -117,7 +116,7 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
         try {
             memberDAO.addMember(organization.getId(), currentUser.getId());
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to join organization due to database error.", e);
+            throw new IllegalStateException("Failed to join organization due to database error.", e);
         }
 
         notifyObservers();
@@ -171,7 +170,15 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
                 .map(organizationDAO::findById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(Collectors.toList());
+                .map(org -> {
+                    org.setProjects(projectDAO.findByOrganizationId(org.getId()));
+                    return org;
+                })
+                .map(org -> {
+                    org.setMembers(memberDAO.findMembersByOrganizationId(org.getId()));
+                    return org;
+                })
+                .toList();
     }
 
     /**

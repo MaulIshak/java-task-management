@@ -11,12 +11,13 @@ public class Organization implements BaseEntity, WorkComponent {
 
     private int id;
     private String orgName;
-    private String code;   
+    private String code;
 
-    private List<Project> projects = new ArrayList<>(); 
+    private List<Project> projects = new ArrayList<>();
     private List<User> members = new ArrayList<>();
 
-    public Organization() {} 
+    public Organization() {
+    }
 
     public Organization(int id, String name, String code) {
         this.id = id;
@@ -25,39 +26,75 @@ public class Organization implements BaseEntity, WorkComponent {
     }
 
     public Organization(int id, String name) {
-        this(id, name, null); 
+        this(id, name, null);
     }
 
     @Override
-    public int getId() { return id; }
+    public int getId() {
+        return id;
+    }
+
     @Override
-    public void setId(int id) { this.id = id; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
     // --- Getters & Setters ---
-    public String getOrgName() { return orgName; }
-    public void setOrgName(String orgName) { this.orgName = orgName; }
+    public String getOrgName() {
+        return orgName;
+    }
 
-    public String getCode() { return code; } 
-    public void setCode(String code) { this.code = code; } 
+    public void setOrgName(String orgName) {
+        this.orgName = orgName;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     // --- Project operations ---
-    public void addProject(Project project) { projects.add(project); }
-    public void removeProject(Project project) { projects.remove(project); }
+    public void addProject(Project project) {
+        projects.add(project);
+    }
 
-    public List<Project> getProjects() { return Collections.unmodifiableList(projects); }
-    public void setProjects(List<Project> projects) { this.projects = projects; }
+    public void removeProject(Project project) {
+        projects.remove(project);
+    }
+
+    public List<Project> getProjects() {
+        return Collections.unmodifiableList(projects);
+    }
+
+    public void setProjects(List<Project> projects) {
+        this.projects = projects;
+    }
 
     // --- Member operations ---
-    public void addMember(User user) { members.add(user); }
-    public void removeMember(User user) { members.remove(user); }
+    public void addMember(User user) {
+        members.add(user);
+    }
 
-    public List<User> getMembers() { return Collections.unmodifiableList(members); }
-    public void setMembers(List<User> members) { this.members = members; }
+    public void removeMember(User user) {
+        members.remove(user);
+    }
+
+    public List<User> getMembers() {
+        return Collections.unmodifiableList(members);
+    }
+
+    public void setMembers(List<User> members) {
+        this.members = members;
+    }
 
     // --- Implementasi WorkComponent ---
     @Override
-    public String getName() { return orgName; }
-
+    public String getName() {
+        return getOrgName();
+    }
 
     @Override
     public double getCompletionPercentage() {

@@ -34,7 +34,7 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
         this.taskService = taskService;
 
         this.projectService.registerObserver(this);
-        UserSession.getInstance().registerObserver(this); 
+        UserSession.getInstance().registerObserver(this);
 
         setPadding(new Insets(30));
         setSpacing(30);
@@ -47,11 +47,7 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
     public void update() {
         javafx.application.Platform.runLater(() -> {
             if (UserSession.getInstance().isLoggedIn()) {
-                if (getChildren().isEmpty()) {
-                    render();
-                } else {
-                    render();
-                }
+                render();
             } else {
                 getChildren().clear();
             }
@@ -158,13 +154,11 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
             header.getChildren().add(btnSpacer);
         }
 
-        if (showActions) {
-            if (currentOrg != null && organizationService.isCurrentUserOwner(currentOrg.getId())) {
-                Button addBtn = new Button("+ Add Project");
-                addBtn.getStyleClass().add("primary-button");
-                addBtn.setOnAction(e -> showCreateProjectModal());
-                header.getChildren().add(addBtn);
-            }
+        if (showActions && currentOrg != null && organizationService.isCurrentUserOwner(currentOrg.getId())) {
+            Button addBtn = new Button("+ Add Project");
+            addBtn.getStyleClass().add("primary-button");
+            addBtn.setOnAction(e -> showCreateProjectModal());
+            header.getChildren().add(addBtn);
         }
 
         section.getChildren().add(header);

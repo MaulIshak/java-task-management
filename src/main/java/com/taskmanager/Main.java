@@ -13,7 +13,7 @@ public class Main extends Application {
         stage.setTitle("JavaFX Documentation App");
 
         MainLayout mainLayout = MainLayout.getInstance();
-        mainLayout.update(); // Initialize view state
+        mainLayout.update(); 
         Scene scene = new Scene(mainLayout, 1024, 768);
 
         // Load CSS

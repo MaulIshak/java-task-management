@@ -49,7 +49,6 @@ public class ProjectService implements com.taskmanager.model.interfaces.Subject 
     }
 
     public Project getProjectWithTasks(int projectId) {
-        // Menggunakan idiom Optional.orElseThrow agar lebih bersih
         Project project = projectDAO.findById(projectId)
                 .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + projectId));
 
