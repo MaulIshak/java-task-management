@@ -10,8 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +40,7 @@ class ProjectServiceTest {
 
     @Test
     @DisplayName("Create Project: Sukses membuat project baru")
-    void testCreateProjectSuccess() throws Exception {
+    void testCreateProjectSuccess() {
         // Arrange
         int orgId = 1;
         String name = "Website Redesign";
@@ -85,7 +83,7 @@ class ProjectServiceTest {
 
     @Test
     @DisplayName("Get Project with Tasks: Mengambil project beserta list task-nya")
-    void testGetProjectWithTasksSuccess() throws Exception {
+    void testGetProjectWithTasksSuccess() {
         // Arrange
         int projectId = 10;
         Project mockProject = new Project(projectId, 1, "Alpha Project", "Desc");
@@ -122,7 +120,7 @@ class ProjectServiceTest {
         Exception e = assertThrows(Exception.class, () ->
                 projectService.getProjectWithTasks(projectId)
         );
-        assertEquals("Project not found", e.getMessage());
+        assertEquals("Project not found with ID: "+projectId, e.getMessage());
 
         // Pastikan tidak mencoba mengambil task jika project saja tidak ada
         verify(taskDAO, never()).findByProjectId(anyInt());
@@ -134,7 +132,7 @@ class ProjectServiceTest {
 
     @Test
     @DisplayName("Update Project: Sukses update nama dan deskripsi")
-    void testUpdateProjectSuccess() throws Exception {
+    void testUpdateProjectSuccess()  {
         // Arrange
         Project existingProject = new Project(1, 1, "Old Name", "Old Desc");
 

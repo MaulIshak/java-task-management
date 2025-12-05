@@ -43,7 +43,7 @@ class TaskServiceTest {
 
     @Test
     @DisplayName("Create Task: Sukses membuat task baru")
-    void testCreateTaskSuccess() throws Exception {
+    void testCreateTaskSuccess() {
         // Arrange
         int projectId = 1;
         String title = "Implementasi Login";
@@ -78,7 +78,7 @@ class TaskServiceTest {
         Exception e = assertThrows(Exception.class, () ->
                 taskService.createTask(1, "", "Desc", LocalDate.now(), null)
         );
-        assertEquals("Title required", e.getMessage());
+        assertEquals("Task title cannot be empty", e.getMessage());
 
         verify(taskDAO, never()).save(any());
     }
