@@ -221,12 +221,12 @@ public class Sidebar extends VBox implements Observer {
 
     private HBox createLogo() {
         HBox box = new HBox(10);
-        box.setAlignment(Pos.CENTER_LEFT);
+        box.setAlignment(Pos.TOP_LEFT);
 
         Label icon = new Label("Z");
         icon.getStyleClass().add("sidebar-logo-icon");
 
-        Label text = new Label("Zenith");
+        Label text = new Label("Java Task Management");
         text.getStyleClass().add("sidebar-logo");
 
         box.getChildren().addAll(icon, text);
