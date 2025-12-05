@@ -13,8 +13,15 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
+
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CreateOrganizationModal {
+
+    private static final Logger LOGGER = Logger.getLogger(CreateOrganizationModal.class.getName());
 
     private final OrganizationService organizationService;
     private final Runnable onSuccess;
@@ -77,7 +84,7 @@ public class CreateOrganizationModal {
                     }
                     dialog.close();
                 } catch (Exception ex) {
-                    System.err.println("Error creating org: " + ex.getMessage());
+                    LOGGER.log(Level.SEVERE, "Error creating org", ex);
                 }
             }
         });
@@ -92,13 +99,13 @@ public class CreateOrganizationModal {
         dialog.setScene(dialogScene);
 
         // Full screen backdrop
-        if (Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst().isPresent()) {
-            javafx.stage.Window owner = Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
-                    .get();
-            dialog.setX(owner.getX());
-            dialog.setY(owner.getY());
-            dialog.setWidth(owner.getWidth());
-            dialog.setHeight(owner.getHeight());
+        Optional<Window> owner = Window.getWindows().stream().filter(Window::isShowing).findFirst();
+        if (owner.isPresent()) {
+            Window window = owner.get();
+            dialog.setX(window.getX());
+            dialog.setY(window.getY());
+            dialog.setWidth(window.getWidth());
+            dialog.setHeight(window.getHeight());
         } else {
             dialog.setWidth(800);
             dialog.setHeight(600);

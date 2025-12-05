@@ -1,13 +1,13 @@
 package com.taskmanager.view;
 
 import javafx.scene.Node;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import com.taskmanager.model.Project;
 
 public class ViewFactory {
     private static ViewFactory instance;
-    private final Map<ViewName, Node> viewCache = new HashMap<>();
+    private final Map<ViewName, Node> viewCache = new EnumMap<>(ViewName.class);
 
     // Services
     private final com.taskmanager.service.TaskService taskService;

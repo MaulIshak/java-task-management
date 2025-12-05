@@ -16,10 +16,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CreateTaskModal {
+
+    private static final Logger LOGGER = Logger.getLogger(CreateTaskModal.class.getName());
 
     private final TaskService taskService;
     private final int projectId;
@@ -55,67 +61,99 @@ public class CreateTaskModal {
         Label titleLabel = new Label("Create Task");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
-        // Title Input
+        TextField titleField = createTitleInput();
         VBox titleGroup = new VBox(5);
-        Label taskTitleLabel = new Label("Title");
-        taskTitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+        titleGroup.getChildren().addAll(new Label("Title"), titleField);
+
+        TextArea descArea = createDescriptionInput();
+        VBox descGroup = new VBox(5);
+        descGroup.getChildren().addAll(new Label("Description"), descArea);
+
+        DatePicker datePicker = new DatePicker();
+        ComboBox<String> statusBox = createStatusBox();
+        HBox row1 = createRow1(datePicker, statusBox);
+
+        ComboBox<String> tagBox = createTagBox();
+        ComboBox<String> assigneeBox = createAssigneeBox();
+        HBox row2 = createRow2(tagBox, assigneeBox);
+
+        HBox buttonBox = createButtonBox(dialog, titleField, descArea, datePicker, assigneeBox);
+
+        dialogVbox.getChildren().addAll(titleLabel, titleGroup, descGroup, row1, row2, buttonBox);
+        root.getChildren().add(dialogVbox);
+
+        Scene dialogScene = new Scene(root);
+        dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(dialogScene);
+
+        positionDialog(dialog);
+
+        dialog.show();
+    }
+
+    private TextField createTitleInput() {
         TextField titleField = new TextField();
         titleField.setPromptText("Task title");
         titleField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ccc; -fx-border-radius: 5;");
-        titleGroup.getChildren().addAll(taskTitleLabel, titleField);
+        return titleField;
+    }
 
-        // Description Input
-        VBox descGroup = new VBox(5);
-        Label descLabel = new Label("Description");
-        descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private TextArea createDescriptionInput() {
         TextArea descArea = new TextArea();
         descArea.setPromptText("Task description...");
         descArea.setPrefRowCount(3);
         descArea.setWrapText(true);
         descArea.setStyle("-fx-background-radius: 5; -fx-border-color: #ccc; -fx-border-radius: 5;");
-        descGroup.getChildren().addAll(descLabel, descArea);
+        return descArea;
+    }
 
-        // Due Date & Status
-        HBox row1 = new HBox(20);
-
-        VBox dateGroup = new VBox(5);
-        Label dateLabel = new Label("Due Date");
-        dateLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
-        DatePicker datePicker = new DatePicker();
-        dateGroup.getChildren().addAll(dateLabel, datePicker);
-
-        VBox statusGroup = new VBox(5);
-        Label statusLabel = new Label("Status");
-        statusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private ComboBox<String> createStatusBox() {
         ComboBox<String> statusBox = new ComboBox<>();
         statusBox.getItems().addAll("TODO", "ON_PROGRESS", "DONE");
         statusBox.setValue("TODO");
-        statusGroup.getChildren().addAll(statusLabel, statusBox);
+        return statusBox;
+    }
+
+    private HBox createRow1(DatePicker datePicker, ComboBox<String> statusBox) {
+        HBox row1 = new HBox(20);
+        VBox dateGroup = new VBox(5);
+        dateGroup.getChildren().addAll(new Label("Due Date"), datePicker);
+
+        VBox statusGroup = new VBox(5);
+        statusGroup.getChildren().addAll(new Label("Status"), statusBox);
 
         row1.getChildren().addAll(dateGroup, statusGroup);
+        return row1;
+    }
 
-        // Tag & Assignee
-        HBox row2 = new HBox(20);
-
-        VBox tagGroup = new VBox(5);
-        Label tagLabel = new Label("Tag");
-        tagLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private ComboBox<String> createTagBox() {
         ComboBox<String> tagBox = new ComboBox<>();
         tagBox.getItems().addAll("Feature", "Bug", "Design", "Refactor");
         tagBox.setValue("Feature");
-        tagGroup.getChildren().addAll(tagLabel, tagBox);
+        return tagBox;
+    }
 
-        VBox assigneeGroup = new VBox(5);
-        Label assigneeLabel = new Label("Assignee");
-        assigneeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private ComboBox<String> createAssigneeBox() {
         ComboBox<String> assigneeBox = new ComboBox<>();
-
         assigneeBox.getItems().add("Me");
         assigneeBox.setValue("Me");
-        assigneeGroup.getChildren().addAll(assigneeLabel, assigneeBox);
+        return assigneeBox;
+    }
+
+    private HBox createRow2(ComboBox<String> tagBox, ComboBox<String> assigneeBox) {
+        HBox row2 = new HBox(20);
+        VBox tagGroup = new VBox(5);
+        tagGroup.getChildren().addAll(new Label("Tag"), tagBox);
+
+        VBox assigneeGroup = new VBox(5);
+        assigneeGroup.getChildren().addAll(new Label("Assignee"), assigneeBox);
 
         row2.getChildren().addAll(tagGroup, assigneeGroup);
+        return row2;
+    }
 
+    private HBox createButtonBox(Stage dialog, TextField titleField, TextArea descArea, DatePicker datePicker,
+            ComboBox<String> assigneeBox) {
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -126,49 +164,46 @@ public class CreateTaskModal {
         Button createBtn = new Button("Create Task");
         createBtn.setStyle(
                 "-fx-background-color: #2962ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 5; -fx-cursor: hand;");
-        createBtn.setOnAction(e -> {
-            String title = titleField.getText();
-            if (title != null && !title.trim().isEmpty()) {
-                try {
-                    LocalDate dueDate = datePicker.getValue() != null ? datePicker.getValue() : LocalDate.now();
-        
-                    com.taskmanager.model.User assignee = null;
-                    if ("Me".equals(assigneeBox.getValue())) {
-                        assignee = com.taskmanager.util.UserSession.getInstance().getCurrentUser();
-                    }
-
-                    taskService.createTask(projectId, title, descArea.getText(), dueDate, assignee);
-
-                    if (onSuccess != null)
-                        onSuccess.run();
-                    dialog.close();
-                } catch (Exception ex) {
-                    System.err.println("Error creating task: " + ex.getMessage());
-                }
-            }
-        });
+        createBtn.setOnAction(e -> handleCreateTask(dialog, titleField, descArea, datePicker, assigneeBox));
 
         buttonBox.getChildren().addAll(cancelBtn, createBtn);
+        return buttonBox;
+    }
 
-        dialogVbox.getChildren().addAll(titleLabel, titleGroup, descGroup, row1, row2, buttonBox);
-        root.getChildren().add(dialogVbox);
+    private void handleCreateTask(Stage dialog, TextField titleField, TextArea descArea, DatePicker datePicker,
+            ComboBox<String> assigneeBox) {
+        String title = titleField.getText();
+        if (title != null && !title.trim().isEmpty()) {
+            try {
+                LocalDate dueDate = datePicker.getValue() != null ? datePicker.getValue() : LocalDate.now();
 
-        Scene dialogScene = new Scene(root);
-        dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        dialog.setScene(dialogScene);
+                com.taskmanager.model.User assignee = null;
+                if ("Me".equals(assigneeBox.getValue())) {
+                    assignee = com.taskmanager.util.UserSession.getInstance().getCurrentUser();
+                }
 
-        if (Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst().isPresent()) {
-            javafx.stage.Window owner = Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
-                    .get();
-            dialog.setX(owner.getX());
-            dialog.setY(owner.getY());
-            dialog.setWidth(owner.getWidth());
-            dialog.setHeight(owner.getHeight());
+                taskService.createTask(projectId, title, descArea.getText(), dueDate, assignee);
+
+                if (onSuccess != null)
+                    onSuccess.run();
+                dialog.close();
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error creating task", ex);
+            }
+        }
+    }
+
+    private void positionDialog(Stage dialog) {
+        Optional<Window> owner = Window.getWindows().stream().filter(Window::isShowing).findFirst();
+        if (owner.isPresent()) {
+            Window window = owner.get();
+            dialog.setX(window.getX());
+            dialog.setY(window.getY());
+            dialog.setWidth(window.getWidth());
+            dialog.setHeight(window.getHeight());
         } else {
             dialog.setWidth(800);
             dialog.setHeight(600);
         }
-
-        dialog.show();
     }
 }

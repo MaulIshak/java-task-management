@@ -12,6 +12,9 @@ public class AppState implements Subject {
     private static final AppState instance = new AppState();
     private final List<Observer> observers = new ArrayList<>();
 
+    private AppState() {
+    }
+
     private Organization currentOrganization;
     private Project currentProject;
 

@@ -17,11 +17,19 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.StringConverter;
+
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.util.List;
 
 public class CreateProjectModal {
+
+    private static final Logger LOGGER = Logger.getLogger(CreateProjectModal.class.getName());
+    private static final String LABEL_STYLE = "-fx-font-size: 14px; -fx-text-fill: #666;";
 
     private final ProjectService projectService;
     private final OrganizationService organizationService;
@@ -65,10 +73,39 @@ public class CreateProjectModal {
         Label titleLabel = new Label("Create Project");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
-        // Organization Selection
+        ComboBox<Organization> orgComboBox = createOrgComboBox();
         VBox orgGroup = new VBox(5);
         Label orgLabel = new Label("Organization");
-        orgLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+        orgLabel.setStyle(LABEL_STYLE);
+        orgGroup.getChildren().addAll(orgLabel, orgComboBox);
+
+        TextField nameField = createNameField();
+        VBox nameGroup = new VBox(5);
+        Label nameLabel = new Label("Project Name");
+        nameLabel.setStyle(LABEL_STYLE);
+        nameGroup.getChildren().addAll(nameLabel, nameField);
+
+        TextArea descArea = createDescArea();
+        VBox descGroup = new VBox(5);
+        Label descLabel = new Label("Description");
+        descLabel.setStyle(LABEL_STYLE);
+        descGroup.getChildren().addAll(descLabel, descArea);
+
+        HBox buttonBox = createButtonBox(dialog, orgComboBox, nameField, descArea);
+
+        dialogVbox.getChildren().addAll(titleLabel, orgGroup, nameGroup, descGroup, buttonBox);
+        root.getChildren().add(dialogVbox);
+
+        Scene dialogScene = new Scene(root);
+        dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(dialogScene);
+
+        positionDialog(dialog);
+
+        dialog.show();
+    }
+
+    private ComboBox<Organization> createOrgComboBox() {
         ComboBox<Organization> orgComboBox = new ComboBox<>();
         orgComboBox.setMaxWidth(Double.MAX_VALUE);
         try {
@@ -76,7 +113,6 @@ public class CreateProjectModal {
             orgComboBox.getItems().addAll(orgs);
 
             if (preSelectedOrg != null) {
-                // Find and select the pre-selected org
                 for (Organization org : orgs) {
                     if (org.getId() == preSelectedOrg.getId()) {
                         orgComboBox.getSelectionModel().select(org);
@@ -87,7 +123,7 @@ public class CreateProjectModal {
                 orgComboBox.getSelectionModel().selectFirst();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Error loading organizations", e);
         }
 
         orgComboBox.setConverter(new StringConverter<Organization>() {
@@ -101,28 +137,27 @@ public class CreateProjectModal {
                 return null;
             }
         });
-        orgGroup.getChildren().addAll(orgLabel, orgComboBox);
+        return orgComboBox;
+    }
 
-        // Name Input
-        VBox nameGroup = new VBox(5);
-        Label nameLabel = new Label("Project Name");
-        nameLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private TextField createNameField() {
         TextField nameField = new TextField();
         nameField.setPromptText("e.g. Website Redesign");
         nameField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ccc; -fx-border-radius: 5;");
-        nameGroup.getChildren().addAll(nameLabel, nameField);
+        return nameField;
+    }
 
-        // Description Input
-        VBox descGroup = new VBox(5);
-        Label descLabel = new Label("Description");
-        descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+    private TextArea createDescArea() {
         TextArea descArea = new TextArea();
         descArea.setPromptText("Project description...");
         descArea.setPrefRowCount(3);
         descArea.setWrapText(true);
         descArea.setStyle("-fx-background-radius: 5; -fx-border-color: #ccc; -fx-border-radius: 5;");
-        descGroup.getChildren().addAll(descLabel, descArea);
+        return descArea;
+    }
 
+    private HBox createButtonBox(Stage dialog, ComboBox<Organization> orgComboBox, TextField nameField,
+            TextArea descArea) {
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -133,44 +168,41 @@ public class CreateProjectModal {
         Button createBtn = new Button("Create");
         createBtn.setStyle(
                 "-fx-background-color: #2962ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 5; -fx-cursor: hand;");
-        createBtn.setOnAction(e -> {
-            String name = nameField.getText();
-            Organization selectedOrg = orgComboBox.getSelectionModel().getSelectedItem();
-
-            if (selectedOrg != null && name != null && !name.trim().isEmpty()) {
-                try {
-                    projectService.createProject(selectedOrg.getId(), name, descArea.getText());
-                    if (onSuccess != null) {
-                        onSuccess.run();
-                    }
-                    dialog.close();
-                } catch (Exception ex) {
-                    System.err.println("Error creating project: " + ex.getMessage());
-                }
-            }
-        });
+        createBtn.setOnAction(e -> handleCreateProject(dialog, orgComboBox, nameField, descArea));
 
         buttonBox.getChildren().addAll(cancelBtn, createBtn);
+        return buttonBox;
+    }
 
-        dialogVbox.getChildren().addAll(titleLabel, orgGroup, nameGroup, descGroup, buttonBox);
-        root.getChildren().add(dialogVbox);
+    private void handleCreateProject(Stage dialog, ComboBox<Organization> orgComboBox, TextField nameField,
+            TextArea descArea) {
+        String name = nameField.getText();
+        Organization selectedOrg = orgComboBox.getSelectionModel().getSelectedItem();
 
-        Scene dialogScene = new Scene(root);
-        dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        dialog.setScene(dialogScene);
+        if (selectedOrg != null && name != null && !name.trim().isEmpty()) {
+            try {
+                projectService.createProject(selectedOrg.getId(), name, descArea.getText());
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+                dialog.close();
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error creating project", ex);
+            }
+        }
+    }
 
-        if (Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst().isPresent()) {
-            javafx.stage.Window owner = Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
-                    .get();
-            dialog.setX(owner.getX());
-            dialog.setY(owner.getY());
-            dialog.setWidth(owner.getWidth());
-            dialog.setHeight(owner.getHeight());
+    private void positionDialog(Stage dialog) {
+        Optional<Window> owner = Window.getWindows().stream().filter(Window::isShowing).findFirst();
+        if (owner.isPresent()) {
+            Window window = owner.get();
+            dialog.setX(window.getX());
+            dialog.setY(window.getY());
+            dialog.setWidth(window.getWidth());
+            dialog.setHeight(window.getHeight());
         } else {
             dialog.setWidth(800);
             dialog.setHeight(600);
         }
-
-        dialog.show();
     }
 }
