@@ -14,7 +14,7 @@ public class PasswordUtils {
             byte[] encodedHash = digest.digest(plainPassword.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encodedHash);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing password", e);
+            throw new IllegalStateException("Error hashing password", e);
         }
     }
 

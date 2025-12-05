@@ -18,10 +18,13 @@ public class TaskService implements com.taskmanager.model.interfaces.Subject {
     private final UserDAO userDAO;
     private final java.util.List<com.taskmanager.model.interfaces.Observer> observers = new java.util.ArrayList<>();
 
+    public TaskService() {
+        this(new TaskDAO(), new UserDAO());
     private TaskService() {
         this.taskDAO = new TaskDAO();
         this.userDAO = new UserDAO();
     }
+
 
     public static synchronized TaskService getInstance() {
         if (instance == null) {
@@ -35,11 +38,10 @@ public class TaskService implements com.taskmanager.model.interfaces.Subject {
         this.userDAO = userDAO;
     }
 
-    public Task createTask(int projectId, String title, String description, LocalDate dueDate, User assignee)
-            throws Exception {
-        // Validasi
-        if (title == null || title.isEmpty())
-            throw new Exception("Title required");
+    public Task createTask(int projectId, String title, String description, LocalDate dueDate, User assignee) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Task title cannot be empty");
+        }
 
         Task newTask = new TaskBuilder(projectId, title)
                 .setDescription(description)
@@ -53,7 +55,15 @@ public class TaskService implements com.taskmanager.model.interfaces.Subject {
         return savedTask;
     }
 
+
     public void updateTaskStatus(Task task, TaskStatus newStatus) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task to update cannot be null");
+        }
+        if (newStatus == null) {
+            throw new IllegalArgumentException("New status cannot be null");
+        }
+
         task.setStatus(newStatus);
         taskDAO.save(task);
         notifyObservers();
@@ -67,7 +77,7 @@ public class TaskService implements com.taskmanager.model.interfaces.Subject {
     public List<Task> getTasksByProject(int projectId) {
         List<Task> tasks = taskDAO.findByProjectId(projectId);
 
-        // Isi data assignee
+        // Populate Assignee Details
         for (Task t : tasks) {
             if (t.getAssignee() != null) {
                 userDAO.findById(t.getAssignee().getId())
