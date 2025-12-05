@@ -165,8 +165,7 @@ public class DashboardView extends VBox implements Observer, View {
                         progress = (double) doneCount / tasks.size();
                     }
 
-                    VBox card = createGenericCard(project.getName(), project.getDescription(), "Members: N/A", progress,
-                            "Project:" + project.getId());
+                    VBox card = createGenericCard(project.getName(), project.getDescription(), "", progress,"Project:" + project.getId());
                     projectContainer.getChildren().add(card);
                 });
 
@@ -248,8 +247,7 @@ public class DashboardView extends VBox implements Observer, View {
         return section;
     }
 
-    private VBox createGenericCard(String title, String description, String metaInfo, double progress,
-            String viewName) {
+    private VBox createGenericCard(String title, String description, String metaInfo, double progress, String viewName) {
         VBox card = new VBox(15);
         card.getStyleClass().add("dashboard-card");
         card.setPrefWidth(350);
@@ -281,10 +279,16 @@ public class DashboardView extends VBox implements Observer, View {
             });
         }
 
+        HBox titleBox = new HBox(5);
+
+        Region region = new Region();
+        HBox.setHgrow(region, Priority.ALWAYS);
+
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("card-title");
 
-        card.getChildren().add(titleLabel);
+        titleBox.getChildren().addAll(titleLabel, region);
+        card.getChildren().add(titleBox);
 
         if (description != null && !description.isEmpty()) {
             Label descLabel = new Label(description);
@@ -297,7 +301,10 @@ public class DashboardView extends VBox implements Observer, View {
         Label metaLabel = new Label(metaInfo);
         metaLabel.getStyleClass().add("card-members");
         metaBox.getChildren().add(metaLabel);
-        card.getChildren().add(metaBox);
+
+        if (viewName != null && !viewName.startsWith("Project:")) {
+            card.getChildren().add(metaBox);
+        }
 
         VBox progressBox = new VBox(5);
         HBox progressLabelBox = new HBox();

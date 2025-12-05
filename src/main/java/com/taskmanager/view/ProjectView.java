@@ -96,9 +96,7 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
                         progress = (double) doneCount / tasks.size();
                     }
 
-                    container.getChildren().add(
-                            createGenericCard(proj.getName(), proj.getDescription(), "Members: N/A", progress,
-                                    "Project:" + proj.getId()));
+                    container.getChildren().add(createGenericCard(proj.getName(), proj.getDescription(), progress, "Project:" + proj.getId()));
                 }
             }
         } catch (Exception e) {
@@ -165,8 +163,7 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
         return section;
     }
 
-    private VBox createGenericCard(String title, String description, String metaInfo, double progress,
-            String viewName) {
+    private VBox createGenericCard(String title, String description, double progress, String viewName) {
         VBox card = new VBox(15);
         card.getStyleClass().add("dashboard-card");
         card.setPrefWidth(350);
@@ -188,10 +185,34 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
             });
         }
 
+        HBox titleBox = new HBox(5);
+        titleBox.setAlignment(Pos.TOP_LEFT);
+
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("card-title");
 
-        card.getChildren().add(titleLabel);
+        Region region = new Region();
+        HBox.setHgrow(region, Priority.ALWAYS);
+
+        titleBox.getChildren().addAll(titleLabel, region);
+
+        Organization currentOrg = AppState.getInstance().getCurrentOrganization();
+        if (currentOrg != null && organizationService.isCurrentUserOwner(currentOrg.getId())) {
+            Button deleteButton = new Button("Delete");
+            deleteButton.getStyleClass().add("delete-button");
+            deleteButton.setOnAction(e -> {
+                try {
+                    int projId = Integer.parseInt(viewName.split(":")[1]);
+                    projectService.deleteProject(projId);
+                    update();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+            titleBox.getChildren().add(deleteButton);
+        }
+
+        card.getChildren().add(titleBox);
 
         if (description != null && !description.isEmpty()) {
             Label descLabel = new Label(description);
@@ -199,12 +220,6 @@ public class ProjectView extends VBox implements com.taskmanager.model.interface
             descLabel.setWrapText(true);
             card.getChildren().add(descLabel);
         }
-
-        HBox metaBox = new HBox(5);
-        Label metaLabel = new Label(metaInfo);
-        metaLabel.getStyleClass().add("card-members");
-        metaBox.getChildren().add(metaLabel);
-        card.getChildren().add(metaBox);
 
         VBox progressBox = new VBox(5);
         HBox progressLabelBox = new HBox();
