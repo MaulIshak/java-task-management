@@ -1,25 +1,129 @@
-/* Global Styles */
+/* -------------------- GLOBAL & ROOT STYLE -------------------- */
 .root {
-    -fx-font-family: "Poppins"; 
+    -fx-font-family: "Poppins";
     -fx-background-color: #f4f4f9;
 }
 
-.text-field, .text-field:active, .text-field:focus {
+* {
     -fx-font-family: "Poppins";
-    -fx-font-size: 14;
-    -fx-background-radius: 6;
-    -fx-background-color: #fff;
-    -fx-text-fill: #333;
-    -fx-border-color: #ccc;
+}
 
-    /* remove border/shadow */
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
+/* ------------------------ INPUT FIELDS ------------------------ */
+.text-field, .password-field, .text-area {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #333;
+    -fx-padding: 8 12;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #d0d0d0;
+    -fx-font-size: 14;
     -fx-effect: null;
 }
 
-/* --- Zenith Dashboard Styles --- */
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #2962ff;
+    -fx-background-color: #ffffff;
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+}
 
+.text-field:disabled {
+    -fx-opacity: 0.7;
+    -fx-background-color: #f1f1f1;
+}
+
+/* -------------------------- BUTTONS -------------------------- */
+.button {
+    -fx-background-radius: 6;
+    -fx-padding: 8 18;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-font-size: 14;
+    -fx-border-color: transparent;
+
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+}
+
+/* Primary */
+.btn-primary {
+    -fx-background-color: #2962ff;
+    -fx-text-fill: white;
+}
+.btn-primary:hover { -fx-background-color: #1e50d4; }
+.btn-primary:pressed { -fx-background-color: #153a9e; }
+
+/* Success */
+.btn-success {
+    -fx-background-color: #2e7d32;
+    -fx-text-fill: white;
+}
+.btn-success:hover { -fx-background-color: #1b5e20; }
+
+/* Warning */
+.btn-warning {
+    -fx-background-color: #ff9800;
+    -fx-text-fill: white;
+}
+.btn-warning:hover { -fx-background-color: #fb8c00; }
+
+/* Danger */
+.btn-danger {
+    -fx-background-color: #d32f2f;
+    -fx-text-fill: white;
+}
+.btn-danger:hover { -fx-background-color: #b71c1c; }
+
+/* Info */
+.btn-info {
+    -fx-background-color: #0288d1;
+    -fx-text-fill: white;
+}
+.btn-info:hover { -fx-background-color: #0277bd; }
+
+/* Dark */
+.btn-dark {
+    -fx-background-color: #424242;
+    -fx-text-fill: white;
+}
+.btn-dark:hover { -fx-background-color: #212121; }
+
+/* Light */
+.btn-light {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #333;
+    -fx-border-color: #d0d0d0;
+}
+.btn-light:hover {
+    -fx-background-color: #e6e6e6;
+}
+
+/* Outline */
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #ccc;
+    -fx-text-fill: #555;
+}
+.btn-outline:hover {
+    -fx-background-color: #f1f1f1;
+}
+
+/* Hover Elevation */
+.button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.10), 6, 0, 0, 2);
+}
+
+/* --------------------- UNIVERSAL CARD --------------------- */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 8, 0, 0, 2);
+}
+
+/* -------------------------- LAYOUTS -------------------------- */
 /* Sidebar */
 .sidebar {
     -fx-background-color: #f8f9fa;
@@ -46,18 +150,16 @@
 .sidebar-button {
     -fx-background-color: transparent;
     -fx-text-fill: #555;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 10 15;
     -fx-font-size: 14px;
-    -fx-cursor: hand;
+    -fx-padding: 10 15;
+    -fx-alignment: CENTER_LEFT;
     -fx-background-radius: 8;
+    -fx-cursor: hand;
 }
-
 .sidebar-button:hover {
     -fx-background-color: #e9ecef;
     -fx-text-fill: #333;
 }
-
 .sidebar-button.active {
     -fx-background-color: #e3f2fd;
     -fx-text-fill: #1976d2;
@@ -71,27 +173,13 @@
     -fx-border-color: #e0e0e0;
     -fx-border-width: 0 0 1 0;
 }
-
 .navbar-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-text-fill: #333;
 }
 
-.primary-button {
-    -fx-background-color: #2962ff;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8 16;
-    -fx-background-radius: 6;
-    -fx-cursor: hand;
-}
-
-.primary-button:hover {
-    -fx-background-color: #1565c0;
-}
-
-/* Dashboard View */
+/* Dashboard */
 .dashboard-view {
     -fx-background-color: #f4f6f8;
 }
@@ -102,13 +190,14 @@
     -fx-text-fill: #333;
 }
 
+/* Cards inner */
 .dashboard-card {
     -fx-background-color: white;
     -fx-background-radius: 10;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
     -fx-padding: 20;
     -fx-border-color: #e0e0e0;
     -fx-border-radius: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
 }
 
 .card-title {
@@ -122,22 +211,7 @@
     -fx-text-fill: #666;
 }
 
-.card-members {
-    -fx-font-size: 12px;
-    -fx-text-fill: #888;
-}
-
-.progress-label {
-    -fx-font-size: 11px;
-    -fx-text-fill: #888;
-}
-
-.progress-value {
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #333;
-}
-
+/* Progress Bar */
 .custom-progress-bar .track {
     -fx-background-color: #f0f0f0;
     -fx-background-radius: 4;
@@ -146,7 +220,6 @@
 .custom-progress-bar .bar {
     -fx-background-color: #2962ff;
     -fx-background-radius: 4;
-    -fx-padding: 3px;
 }
 
 /* Task Item */
@@ -157,15 +230,205 @@
     -fx-border-radius: 8;
 }
 
-.task-checkbox {
-    -fx-min-width: 20px;
-    -fx-min-height: 20px;
-    -fx-max-width: 20px;
-    -fx-max-height: 20px;
-    -fx-background-color: white;
-    -fx-border-color: #ccc;
-    -fx-border-radius: 4;
+/* ScrollPane Clean */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Sidebar Specific Buttons */
+.sidebar-empty-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #e0e0e0;
+    -fx-border-style: dashed;
+    -fx-border-radius: 6;
+    -fx-text-fill: #888;
+    -fx-font-size: 12px;
     -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 8 12;
+}
+
+.sidebar-empty-button:hover {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #555;
+    -fx-border-color: #ccc;
+}
+
+.sidebar-add-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 0 8;
+    -fx-background-radius: 4;
+}
+
+.sidebar-add-button:hover {
+    -fx-text-fill: #2962ff;
+    -fx-background-color: #e3f2fd;
+}
+
+.sidebar-logout-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff4444;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+}
+
+.sidebar-logout-button:hover {
+    -fx-background-color: #ffebee;
+    -fx-text-fill: #d32f2f;
+    -fx-background-radius: 4;
+}
+
+.sidebar-profile-section {
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 15 0 0 0;
+}
+
+.sidebar-profile-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.sidebar-logo-icon {
+    -fx-background-color: #2962ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 5 10;
+    -fx-background-radius: 6;
+}
+
+/* -------------------- KANBAN BOARD -------------------- */
+.kanban-column {
+    -fx-background-color: #f4f5f7;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-spacing: 10;
+}
+
+.kanban-column-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #5e6c84;
+    -fx-padding: 0 0 5 0;
+}
+
+.kanban-card {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 0, 1);
+    -fx-cursor: move;
+    -fx-padding: 12;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+}
+
+.kanban-card:hover {
+    -fx-background-color: #fafafa;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 5, 0, 0, 2);
+}
+
+.kanban-card-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+
+.kanban-card-desc {
+    -fx-text-fill: #666;
+    -fx-font-size: 12px;
+}
+
+.kanban-card-meta {
+    -fx-font-size: 10px;
+    -fx-text-fill: #888;
+}
+
+/* -------------------- PROJECT DETAIL VIEW -------------------- */
+.project-header {
+    -fx-padding: 0 0 20 0;
+}
+
+.project-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.project-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #666;
+}
+
+.add-task-button {
+    -fx-background-color: #2962ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+.add-task-button:hover {
+    -fx-background-color: #1e50d4;
+}
+
+/* Kanban Board */
+.kanban-board {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.kanban-column {
+    -fx-background-color: #f8f9fa; /* Very light grey for column background */
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-spacing: 15;
+    -fx-min-width: 320;
+    -fx-pref-width: 320;
+}
+
+.kanban-column-header {
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 10 0;
+}
+
+.column-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.column-count-badge {
+    -fx-background-color: #e0e0e0;
+    -fx-text-fill: #666;
+    -fx-background-radius: 10;
+    -fx-padding: 2 8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* Task Card */
+.kanban-task-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2);
+    -fx-padding: 15;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+}
+
+.kanban-task-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 3);
+    -fx-border-color: #d0d0d0;
 }
 
 .task-title {
@@ -174,20 +437,140 @@
     -fx-text-fill: #333;
 }
 
-.task-project {
+.task-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
+    -fx-wrap-text: true;
+}
+
+/* Tags */
+.task-tag {
+    -fx-padding: 2 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.tag-feature {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: #1976d2;
+}
+
+.tag-refactor {
+    -fx-background-color: #fff3e0;
+    -fx-text-fill: #f57c00;
+}
+
+.tag-bug {
+    -fx-background-color: #ffebee;
+    -fx-text-fill: #d32f2f;
+}
+
+.task-date {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888;
+}
+
+.task-avatar {
+    -fx-fill: #bdbdbd;
+}
+
+/* -------------------- NEW STYLES -------------------- */
+
+.primary-button {
+    -fx-background-color: #2962ff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+.primary-button:hover {
+    -fx-background-color: #1e50d4;
+}
+
+.section-add-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2962ff;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+    -fx-border-color: #2962ff;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+.section-add-button:hover {
+    -fx-background-color: #e3f2fd;
+}
+
+.task-menu-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.task-menu-button .label {
+    -fx-text-fill: #888;
+    -fx-font-size: 16px;
+}
+.task-menu-button:hover .label {
+    -fx-text-fill: #333;
+}
+
+.dashboard-task-item {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 3, 0, 0, 1);
+}
+.dashboard-task-item:hover {
+    -fx-background-color: #fafafa;
+    -fx-border-color: #d0d0d0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 5, 0, 0, 2);
+}
+
+.task-item-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+
+.task-item-project {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888;
+}
+
+.task-item-status {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #666;
+    -fx-padding: 2 8;
+    -fx-background-radius: 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.task-item-date {
     -fx-font-size: 12px;
     -fx-text-fill: #888;
 }
 
-.task-tag {
-    -fx-background-color: #e3f2fd;
-    -fx-text-fill: #1976d2;
-    -fx-font-size: 11px;
+.join-code-box {
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 4;
     -fx-padding: 4 8;
-    -fx-background-radius: 12;
 }
 
-.task-date {
+.progress-label {
     -fx-font-size: 12px;
     -fx-text-fill: #666;
+}
+
+.progress-value {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
 }

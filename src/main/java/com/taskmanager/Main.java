@@ -12,9 +12,10 @@ public class Main extends Application {
     public void start(Stage stage) {
         stage.setTitle("JavaFX Documentation App");
 
-        MainLayout mainLayout = new MainLayout();
+        MainLayout mainLayout = MainLayout.getInstance();
+        mainLayout.update(); // Initialize view state
         Scene scene = new Scene(mainLayout, 1024, 768);
-        
+
         // Load CSS
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         scene.getStylesheets().add(getClass().getResource("/fonts.css").toExternalForm());

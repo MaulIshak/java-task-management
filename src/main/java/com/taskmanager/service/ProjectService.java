@@ -8,14 +8,24 @@ import com.taskmanager.model.Task;
 import java.util.List;
 import java.util.Optional;
 
-public class ProjectService {
+public class ProjectService implements com.taskmanager.model.interfaces.Subject {
+
+    private static ProjectService instance;
 
     private final ProjectDAO projectDAO;
     private final TaskDAO taskDAO; // untuk fetch tasks
+    private final java.util.List<com.taskmanager.model.interfaces.Observer> observers = new java.util.ArrayList<>();
 
-    public ProjectService() {
+    private ProjectService() {
         this.projectDAO = new ProjectDAO();
         this.taskDAO = new TaskDAO();
+    }
+
+    public static synchronized ProjectService getInstance() {
+        if (instance == null) {
+            instance = new ProjectService();
+        }
+        return instance;
     }
 
     public ProjectService(ProjectDAO projectDAO, TaskDAO taskDAO) {
@@ -29,7 +39,9 @@ public class ProjectService {
             throw new Exception("Project name cannot be empty");
         }
         Project project = new Project(0, organizationId, name, description);
-        return projectDAO.save(project);
+        Project savedProject = projectDAO.save(project);
+        notifyObservers();
+        return savedProject;
     }
 
     // 2. Get List Project by Org (Ringan - Tanpa Task)
@@ -64,10 +76,29 @@ public class ProjectService {
         project.setDescription(newDesc);
 
         projectDAO.save(project); // Auto Update karena ID != 0
+        notifyObservers();
     }
 
     // 5. Delete Project
     public void deleteProject(int projectId) {
         projectDAO.delete(projectId);
+        notifyObservers();
+    }
+
+    @Override
+    public void registerObserver(com.taskmanager.model.interfaces.Observer o) {
+        observers.add(o);
+    }
+
+    @Override
+    public void removeObserver(com.taskmanager.model.interfaces.Observer o) {
+        observers.remove(o);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (com.taskmanager.model.interfaces.Observer observer : observers) {
+            observer.update();
+        }
     }
 }

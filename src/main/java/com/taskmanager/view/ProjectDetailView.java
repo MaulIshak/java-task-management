@@ -3,12 +3,15 @@ package com.taskmanager.view;
 import com.taskmanager.model.Project;
 import com.taskmanager.model.Task;
 import com.taskmanager.model.enums.TaskStatus;
-import com.taskmanager.service.ProjectService;
 import com.taskmanager.service.TaskService;
+import com.taskmanager.util.UserSession;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -16,112 +19,148 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class ProjectDetailView extends VBox {
+public class ProjectDetailView extends VBox implements com.taskmanager.model.interfaces.Observer, View {
 
-    private final int projectId;
-    private final ProjectService projectService;
     private final TaskService taskService;
     private Project project;
 
-    private VBox todoColumn;
-    private VBox inProgressColumn;
-    private VBox doneColumn;
-
-    public ProjectDetailView(int projectId, ProjectService projectService, TaskService taskService) {
-        this.projectId = projectId;
-        this.projectService = projectService;
+    public ProjectDetailView(TaskService taskService) {
         this.taskService = taskService;
-
-        setPadding(new Insets(30));
         setSpacing(20);
+        setPadding(new Insets(30));
         getStyleClass().add("dashboard-view");
-
-        loadProjectData();
+        UserSession.getInstance().registerObserver(this);
     }
 
-    private void loadProjectData() {
-        getChildren().clear();
-        try {
-            project = projectService.getProjectWithTasks(projectId);
+    public void setProject(Project project) {
+        this.project = project;
+        render();
+    }
 
-            // Header
-            HBox header = new HBox(20);
-            header.setAlignment(Pos.CENTER_LEFT);
-
-            Label nameLabel = new Label(project.getName());
-            nameLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
-
-            Label descLabel = new Label(project.getDescription());
-            descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
-
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            Button addTaskBtn = new Button("New Task");
-            addTaskBtn.setText("+ New Task"); // Simple text instead of icon
-            addTaskBtn.getStyleClass().add("primary-button"); // Ensure this style exists or use inline
-            addTaskBtn.setStyle(
-                    "-fx-background-color: #2962ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
-            addTaskBtn.setOnAction(e -> showCreateTaskModal());
-
-            header.getChildren().addAll(nameLabel, spacer, addTaskBtn);
-            getChildren().addAll(header, descLabel);
-
-            // Kanban Board
-            HBox board = new HBox(20);
-            HBox.setHgrow(board, Priority.ALWAYS);
-            VBox.setVgrow(board, Priority.ALWAYS);
-
-            todoColumn = createColumn("Todo", TaskStatus.TODO);
-            inProgressColumn = createColumn("In Progress", TaskStatus.ON_PROGRESS);
-            doneColumn = createColumn("Done", TaskStatus.DONE);
-
-            // Distribute tasks
-            if (project.getTasks() != null) {
-                for (Task task : project.getTasks()) {
-                    VBox card = createTaskCard(task);
-                    switch (task.getStatus()) {
-                        case TODO:
-                            todoColumn.getChildren().add(card);
-                            break;
-                        case ON_PROGRESS:
-                            inProgressColumn.getChildren().add(card);
-                            break;
-                        case DONE:
-                            doneColumn.getChildren().add(card);
-                            break;
-                    }
+    @Override
+    public void update() {
+        javafx.application.Platform.runLater(() -> {
+            if (UserSession.getInstance().isLoggedIn()) {
+                if (project != null) {
+                    render();
                 }
+            } else {
+                getChildren().clear();
+                this.project = null;
             }
+        });
+    }
 
-            board.getChildren().addAll(wrapColumn(todoColumn), wrapColumn(inProgressColumn), wrapColumn(doneColumn));
-            getChildren().add(board);
+    @Override
+    public void render() {
+        getChildren().clear();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            getChildren().add(new Label("Error loading project: " + e.getMessage()));
+        if (!UserSession.getInstance().isLoggedIn()) {
+            return;
         }
+
+        if (project == null)
+            return;
+
+        // --- Header Section ---
+        VBox headerContainer = new VBox(10);
+        headerContainer.getStyleClass().add("project-header");
+
+        HBox topHeader = new HBox();
+        topHeader.setAlignment(Pos.CENTER_LEFT);
+
+        Label titleLabel = new Label(project.getName());
+        titleLabel.getStyleClass().add("project-title");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button addTaskButton = new Button("+ Add Task");
+        addTaskButton.getStyleClass().add("primary-button"); // Changed to generic primary button class
+        addTaskButton.setOnAction(e -> showCreateTaskModal());
+
+        topHeader.getChildren().addAll(titleLabel, spacer, addTaskButton);
+
+        Label descriptionLabel = new Label(
+                project.getDescription() != null ? project.getDescription() : "No description");
+        descriptionLabel.getStyleClass().add("project-description");
+
+        headerContainer.getChildren().addAll(topHeader, descriptionLabel);
+        getChildren().add(headerContainer);
+
+        // --- Kanban Board ---
+        HBox kanbanBoard = new HBox(30);
+        kanbanBoard.getStyleClass().add("kanban-board");
+        VBox.setVgrow(kanbanBoard, Priority.ALWAYS);
+        kanbanBoard.setMinHeight(Region.USE_PREF_SIZE);
+        kanbanBoard.prefHeightProperty().bind(this.heightProperty());
+
+        List<Task> allTasks = taskService.getTasksByProject(project.getId());
+
+        List<Task> todoTasks = allTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.TODO)
+                .collect(Collectors.toList());
+        List<Task> inProgressTasks = allTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.ON_PROGRESS)
+                .collect(Collectors.toList());
+        List<Task> doneTasks = allTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.DONE)
+                .collect(Collectors.toList());
+
+        VBox todoCol = createColumn("Todo", todoTasks);
+        VBox inProgressCol = createColumn("In Progress", inProgressTasks);
+        VBox doneCol = createColumn("Done", doneTasks);
+
+        todoCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));   
+        inProgressCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));
+        doneCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));
+
+        kanbanBoard.getChildren().addAll(todoCol, inProgressCol, doneCol);
+
+        getChildren().add(kanbanBoard);
     }
 
-    private VBox wrapColumn(VBox column) {
-        VBox wrapper = new VBox(column);
-        HBox.setHgrow(wrapper, Priority.ALWAYS);
-        wrapper.setStyle("-fx-background-color: #f4f5f7; -fx-background-radius: 5;");
-        wrapper.setPadding(new Insets(10));
-        return wrapper;
-    }
-
-    private VBox createColumn(String title, TaskStatus status) {
+    private VBox createColumn(String title, List<Task> tasks) {
         VBox column = new VBox(10);
-        column.setMinWidth(250);
+        column.setMinWidth(250); 
+        column.getStyleClass().add("kanban-column");
+        VBox.setVgrow(column, Priority.ALWAYS); 
 
+        // Header
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #5e6c84;");
-        column.getChildren().add(titleLabel);
+        titleLabel.getStyleClass().add("column-title");
 
-        // Drag over logic
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label countLabel = new Label(String.valueOf(tasks.size()));
+        countLabel.getStyleClass().add("column-count-badge");
+
+        header.getChildren().addAll(titleLabel, spacer, countLabel);
+        column.getChildren().add(header);
+
+        // Task List wrapped in ScrollPane
+        VBox taskList = new VBox(10);
+
+        for (Task task : tasks) {
+            taskList.getChildren().add(createTaskCard(task));
+        }
+
+        ScrollPane scrollPane = new ScrollPane(taskList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(false); 
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); 
+
+        VBox.setVgrow(scrollPane, Priority.ALWAYS); 
+
         column.setOnDragOver(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -129,47 +168,101 @@ public class ProjectDetailView extends VBox {
             event.consume();
         });
 
-        // Drop logic
         column.setOnDragDropped(event -> {
             Dragboard db = event.getDragboard();
             boolean success = false;
             if (db.hasString()) {
-                int taskId = Integer.parseInt(db.getString());
-                updateTaskStatus(taskId, status);
-                success = true;
+                try {
+                    int taskId = Integer.parseInt(db.getString());
+                    TaskStatus newStatus = null;
+                    if ("Todo".equals(title)) {
+                        newStatus = TaskStatus.TODO;
+                    } else if ("In Progress".equals(title)) {
+                        newStatus = TaskStatus.ON_PROGRESS;
+                    } else if ("Done".equals(title)) {
+                        newStatus = TaskStatus.DONE;
+                    }
+
+                    if (newStatus != null) {
+                        updateTaskStatus(taskId, newStatus);
+                        success = true;
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
             }
             event.setDropCompleted(success);
             event.consume();
         });
 
+        column.getChildren().add(scrollPane);
         return column;
     }
 
     private VBox createTaskCard(Task task) {
         VBox card = new VBox(10);
-        card.setPadding(new Insets(15));
-        card.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 3; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 0, 1); -fx-cursor: move;");
+        card.getStyleClass().add("kanban-task-card");
 
-        Label title = new Label(task.getTitle());
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-        title.setWrapText(true);
+        // Header: Title and Menu
+        HBox header = new HBox();
+        header.setAlignment(Pos.TOP_LEFT);
 
-        Label desc = new Label(task.getDescription());
-        desc.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
-        desc.setWrapText(true);
+        Label titleLabel = new Label(task.getTitle());
+        titleLabel.getStyleClass().add("task-title");
+        titleLabel.setWrapText(true);
 
-        HBox meta = new HBox(10);
-        Label date = new Label(task.getDueDate() != null ? task.getDueDate().toString() : "No date");
-        date.setStyle("-fx-font-size: 10px; -fx-text-fill: #888;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label assignee = new Label(task.getAssignee() != null ? task.getAssignee().getName() : "Unassigned");
-        assignee.setStyle("-fx-font-size: 10px; -fx-text-fill: #888;");
+        MenuButton optionsMenu = new MenuButton("...");
+        optionsMenu.getStyleClass().add("task-menu-button");
 
-        meta.getChildren().addAll(date, assignee);
-        card.getChildren().addAll(title, desc, meta);
+        MenuItem editItem = new MenuItem("Edit");
+        editItem.setOnAction(e -> {
+            System.out.println("Edit task: " + task.getId());
+        });
 
-        // Drag detection
+        MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setOnAction(e -> {
+            try {
+                taskService.deleteTask(task.getId());
+                render();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        optionsMenu.getItems().addAll(editItem, deleteItem);
+        header.getChildren().addAll(titleLabel, spacer, optionsMenu);
+        card.getChildren().add(header);
+
+        // Description
+        if (task.getDescription() != null && !task.getDescription().isEmpty()) {
+            Label descLabel = new Label(task.getDescription());
+            descLabel.getStyleClass().add("task-description");
+            card.getChildren().add(descLabel);
+        }
+
+        HBox footer = new HBox(10);
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        Label tagLabel = new Label("Feature");
+        tagLabel.getStyleClass().addAll("task-tag", "tag-feature");
+
+        Label dateLabel = new Label(task.getDueDate() != null ? task.getDueDate().toString() : "No Date");
+        dateLabel.getStyleClass().add("task-date");
+
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
+        // Avatar placeholder
+        Circle avatar = new Circle(12);
+        avatar.getStyleClass().add("task-avatar");
+
+        footer.getChildren().addAll(tagLabel, dateLabel, footerSpacer, avatar);
+        card.getChildren().add(footer);
+
+        // Drag and Drop for Card (Source)
         card.setOnDragDetected(event -> {
             Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
@@ -183,12 +276,14 @@ public class ProjectDetailView extends VBox {
 
     private void updateTaskStatus(int taskId, TaskStatus newStatus) {
         try {
-            // Find task object (optimization: keep map or iterate)
-            // For simplicity, fetch or iterate current list
             Task task = project.getTasks().stream().filter(t -> t.getId() == taskId).findFirst().orElse(null);
+            if (task == null) {
+                task = taskService.getTasksByProject(project.getId()).stream().filter(t -> t.getId() == taskId).findFirst().orElse(null);
+            }
+
             if (task != null) {
                 taskService.updateTaskStatus(task, newStatus);
-                loadProjectData(); // Refresh UI
+                render();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -196,6 +291,10 @@ public class ProjectDetailView extends VBox {
     }
 
     private void showCreateTaskModal() {
-        new CreateTaskModal(taskService, projectId, this::loadProjectData).show();
+        if (project != null) {
+            new CreateTaskModal(taskService, project.getId(), this::render).show();
+        } else {
+            System.err.println("Cannot create task: No project selected.");
+        }
     }
 }

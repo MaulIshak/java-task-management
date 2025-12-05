@@ -3,28 +3,30 @@ package com.taskmanager.view;
 import com.taskmanager.model.Organization;
 import com.taskmanager.model.Project;
 import com.taskmanager.model.Task;
+import com.taskmanager.model.User;
+import com.taskmanager.model.enums.TaskStatus;
+import com.taskmanager.model.interfaces.Observer;
 import com.taskmanager.service.OrganizationService;
 import com.taskmanager.service.ProjectService;
 import com.taskmanager.service.TaskService;
 import com.taskmanager.util.UserSession;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 
 import java.util.List;
 
-public class DashboardView extends VBox {
+public class DashboardView extends VBox implements Observer, View {
 
     private final OrganizationService organizationService;
     private final ProjectService projectService;
     private final TaskService taskService;
+
+    private FlowPane orgContainer;
+    private FlowPane projectContainer;
+    private VBox taskList;
 
     public DashboardView(OrganizationService organizationService, ProjectService projectService,
             TaskService taskService) {
@@ -32,126 +34,212 @@ public class DashboardView extends VBox {
         this.projectService = projectService;
         this.taskService = taskService;
 
+        organizationService.registerObserver(this);
+        projectService.registerObserver(this);
+        taskService.registerObserver(this);
+        AppState.getInstance().registerObserver(this);
+        UserSession.getInstance().registerObserver(this);
+
+        render();
+    }
+
+    @Override
+    public void render() {
+        getChildren().clear();
+
+        if (!UserSession.getInstance().isLoggedIn()) {
+            return;
+        }
+
         setPadding(new Insets(30));
         setSpacing(30);
         getStyleClass().add("dashboard-view");
 
-        // My Organizations Section
         VBox orgSection = createSectionHeader("My Organizations", true);
-        FlowPane orgContainer = new FlowPane();
-        orgContainer.setHgap(20);
-        orgContainer.setVgap(20);
-        loadOrganizations(orgContainer);
+        orgContainer = createFlowPane();
         orgSection.getChildren().add(orgContainer);
 
-        // My Projects Section
         VBox projectSection = createSectionHeader("My Projects", false);
-        FlowPane projectContainer = new FlowPane();
-        projectContainer.setHgap(20);
-        projectContainer.setVgap(20);
-        loadProjects(projectContainer);
+        projectContainer = createFlowPane();
         projectSection.getChildren().add(projectContainer);
 
-        // My Tasks Section
         VBox taskSection = createSectionHeader("My Tasks", false);
-        VBox taskList = new VBox(10);
-        loadTasks(taskList);
+        taskList = new VBox(10);
         taskSection.getChildren().add(taskList);
 
         getChildren().addAll(orgSection, projectSection, taskSection);
+
+        refreshData();
     }
 
-    private void loadOrganizations(FlowPane container) {
+    @Override
+    public void update() {
+        Platform.runLater(() -> {
+            if (UserSession.getInstance().isLoggedIn()) {
+                if (getChildren().isEmpty()) {
+                    render();
+                } else {
+                    refreshData();
+                }
+            } else {
+                getChildren().clear();
+            }
+        });
+    }
+
+    private void refreshData() {
+        if (!UserSession.getInstance().isLoggedIn())
+            return;
+        loadOrganizations();
+        loadProjects();
+        loadTasks();
+    }
+
+    private FlowPane createFlowPane() {
+        FlowPane pane = new FlowPane();
+        pane.setHgap(20);
+        pane.setVgap(20);
+        return pane;
+    }
+
+    private void loadOrganizations() {
+        orgContainer.getChildren().clear();
         try {
             List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
             if (orgs.isEmpty()) {
-                // Show empty state or nothing? Requirement says "jika data kosong terdapat
-                // sebuah button border dashed..."
-                // But that was for Sidebar. For Dashboard it says "data organsiasi berhasil di
-                // tambah muncul di dashboard".
-                // Let's show a placeholder if empty.
-                Label emptyLabel = new Label("No organizations found. Join or create one!");
-                container.getChildren().add(emptyLabel);
-            } else {
-                for (Organization org : orgs) {
-                    // Calculate progress or member count if available
-                    String members = (org.getMembers() != null ? org.getMembers().size() : 0) + " members";
-                    // Progress is not really applicable to Org unless we aggregate projects. Let's
-                    // use 0 for now.
-                    container.getChildren().add(
-                            createGenericCard(org.getOrgName(), null, members, 0.0, "organization:" + org.getId()));
-                }
+                orgContainer.getChildren().add(new Label("No organizations yet."));
+                return;
             }
+
+            orgs.forEach(org -> {
+                double totalProgress = 0;
+                int projectCount = 0;
+                List<Project> projects = projectService.getProjectsByOrganization(org.getId());
+                for (Project p : projects) {
+                    List<Task> tasks = taskService.getTasksByProject(p.getId());
+                    if (!tasks.isEmpty()) {
+                        long doneCount = tasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+                        totalProgress += (double) doneCount / tasks.size();
+                    }
+                    projectCount++;
+                }
+                double avgProgress = projectCount > 0 ? totalProgress / projectCount : 0.0;
+
+                VBox card = createGenericCard(org.getOrgName(), null, org.getMembers().size() + " Members", avgProgress,
+                        "organization:" + org.getId());
+                orgContainer.getChildren().add(card);
+            });
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void loadProjects(FlowPane container) {
-        // TODO: Load projects. Since we don't have getProjectsByUser, we might need to
-        // iterate orgs.
-        // For now, placeholder or empty.
-        // Let's try to get projects from the first few organizations.
+    private void loadProjects() {
+        projectContainer.getChildren().clear();
+
         try {
             List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
-            boolean foundAny = false;
+            if (orgs.isEmpty()) {
+                projectContainer.getChildren().add(new Label("No projects yet."));
+                return;
+            }
+
+            orgs.forEach(org -> {
+                List<Project> projects = projectService.getProjectsByOrganization(org.getId());
+
+                projects.forEach(project -> {
+                    // Calculate progress
+                    List<Task> tasks = taskService.getTasksByProject(project.getId());
+                    double progress = 0.0;
+                    if (!tasks.isEmpty()) {
+                        long doneCount = tasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+                        progress = (double) doneCount / tasks.size();
+                    }
+
+                    VBox card = createGenericCard(project.getName(), project.getDescription(), "Members: N/A", progress,
+                            "Project:" + project.getId());
+                    projectContainer.getChildren().add(card);
+                });
+
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadTasks() {
+        taskList.getChildren().clear();
+
+        try {
+            User currentUser = UserSession.getInstance().getCurrentUser();
+            if (currentUser == null)
+                return;
+
+            List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
+
+            boolean hasTasks = false;
+
             for (Organization org : orgs) {
                 List<Project> projects = projectService.getProjectsByOrganization(org.getId());
                 for (Project proj : projects) {
-                    foundAny = true;
-                    // Description is available in Project model
-                    container.getChildren()
-                            .add(createGenericCard(proj.getName(), proj.getDescription(), "Members: N/A", 0.0,
-                                    "Project:" + proj.getId()));
+                    // Fetch tasks from service
+                    List<Task> tasks = taskService.getTasksByProject(proj.getId());
+                    for (Task task : tasks) {
+                        if (task.getAssignee() != null && task.getAssignee().getId() == currentUser.getId()) {
+                            taskList.getChildren().add(createTaskItem(
+                                    task.getTitle(),
+                                    proj.getName(),
+                                    task.getStatus().toString(),
+                                    task.getDueDate() != null ? task.getDueDate().toString() : "No Date",
+                                    proj.getId())); // Passing project ID
+                            hasTasks = true;
+                        }
+                    }
                 }
             }
-            if (!foundAny) {
-                Label emptyLabel = new Label("No projects found.");
-                container.getChildren().add(emptyLabel);
+
+            if (!hasTasks) {
+                taskList.getChildren().add(new Label("No tasks assigned to you."));
             }
+
         } catch (Exception e) {
             e.printStackTrace();
+            taskList.getChildren().add(new Label("Error loading tasks."));
         }
     }
 
-    private void loadTasks(VBox container) {
-        // Placeholder for tasks
-        container.getChildren()
-                .add(createTaskItem("Implement user authentication", "Phoenix Project", "Feature", "11/29/2025"));
-    }
-
-    /**
-     * Creates a titled section for the dashboard.
-     */
-    private VBox createSectionHeader(String title, boolean showActions) {
+    private VBox createSectionHeader(String title, boolean actions) {
         VBox section = new VBox(15);
         HBox header = new HBox(15);
         header.setAlignment(Pos.CENTER_LEFT);
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("section-title");
-
         header.getChildren().add(titleLabel);
 
-        if (showActions) {
+        if (actions) {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
             header.getChildren().add(spacer);
 
-            Button addBtn = new Button("+ Add");
-            addBtn.setOnAction(e -> showCreateOrganizationModal());
+            Button join = new Button("Join Organization");
+            join.setStyle(
+                    "-fx-background-color: white; -fx-text-fill: #007bff; -fx-border-color: #007bff; -fx-border-radius: 4; -fx-background-radius: 4; -fx-cursor: hand;");
+            join.setOnAction(e -> new JoinOrganizationModal(organizationService, this::refreshData).show());
+            header.getChildren().add(join);
 
-            Button joinBtn = new Button("Join");
-            joinBtn.setOnAction(e -> showJoinOrganizationModal());
-
-            header.getChildren().addAll(addBtn, joinBtn);
+            Button add = new Button("+ Add Organization");
+            add.getStyleClass().add("primary-button");
+            add.setOnAction(e -> new CreateOrganizationModal(organizationService, this::refreshData).show());
+            header.getChildren().add(add);
         }
 
         section.getChildren().add(header);
         return section;
     }
 
-    // Generic Section Card
     private VBox createGenericCard(String title, String description, String metaInfo, double progress,
             String viewName) {
         VBox card = new VBox(15);
@@ -162,31 +250,25 @@ public class DashboardView extends VBox {
         if (viewName != null) {
             card.setStyle(card.getStyle() + "-fx-cursor: hand;");
             card.setOnMouseClicked(e -> {
-                // We need to switch view.
-                // Since we don't have direct access to MainLayout's switchView, we can fire an
-                // event or use a static helper.
-                // But MainLayout is the parent.
-                // Let's try to find MainLayout from scene.
-                if (getScene() != null && getScene().getRoot() instanceof javafx.scene.layout.BorderPane) {
-                    // MainLayout extends BorderPane? No, it extends StackPane or similar?
-                    // Let's check MainLayout. It extends BorderPane.
-                    // But we can't cast easily without circular dependency or public method.
-                    // Actually MainLayout is in same package.
-                    if (getScene().getRoot() instanceof MainLayout) {
-                        ((MainLayout) getScene().getRoot()).switchView(viewName);
+                try {
+                    if (viewName.startsWith("organization:")) {
+                        int orgId = Integer.parseInt(viewName.split(":")[1]);
+                        Organization org = organizationService.getOrganizationDetails(orgId);
+                        AppState.getInstance().setCurrentOrganization(org);
+                        AppState.getInstance().setCurrentProject(null);
+                        AppState.getInstance().switchView(ViewName.PROJECTS);
+                    } else if (viewName.startsWith("Project:")) {
+                        int projId = Integer.parseInt(viewName.split(":")[1]);
+                        Project proj = projectService.getProjectWithTasks(projId);
+                        AppState.getInstance().setCurrentProject(proj);
+                        AppState.getInstance().switchView(ViewName.PROJECT_DETAIL);
                     } else {
-                        // Fallback or debug
-                        System.out.println("Navigate to: " + viewName);
-                        // Try to find MainLayout in parent hierarchy if it's not root
-                        javafx.scene.Parent parent = getParent();
-                        while (parent != null) {
-                            if (parent instanceof MainLayout) {
-                                ((MainLayout) parent).switchView(viewName);
-                                break;
-                            }
-                            parent = parent.getParent();
-                        }
+                        ViewName vn = ViewName.valueOf(viewName);
+                        AppState.getInstance().switchView(vn);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println("Navigation failed for: " + viewName);
                 }
             });
         }
@@ -216,7 +298,7 @@ public class DashboardView extends VBox {
         Label progressValue = new Label((int) (progress * 100) + "%");
         progressValue.getStyleClass().add("progress-value");
 
-        HBox spacer = new HBox();
+        Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         progressLabelBox.getChildren().addAll(progressLabel, spacer, progressValue);
@@ -231,82 +313,41 @@ public class DashboardView extends VBox {
         return card;
     }
 
-    private HBox createTaskItem(String title, String project, String tag, String date) {
-        HBox item = new HBox(15);
-        item.getStyleClass().add("task-item");
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(15));
+    private HBox createTaskItem(String title, String project, String tag, String date, int projectId) {
+        HBox row = new HBox(15);
+        row.setPadding(new Insets(15));
+        row.getStyleClass().add("dashboard-task-item"); // New class for styling
+        row.setAlignment(Pos.CENTER_LEFT);
 
-        Button checkbox = new Button();
-        checkbox.getStyleClass().add("task-checkbox");
+        // Make clickable
+        row.setStyle("-fx-cursor: hand;");
+        row.setOnMouseClicked(e -> {
+            try {
+                Project proj = projectService.getProjectWithTasks(projectId);
+                AppState.getInstance().setCurrentProject(proj);
+                AppState.getInstance().switchView(ViewName.PROJECT_DETAIL);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
-        VBox content = new VBox(2);
+        VBox titleBox = new VBox(5);
         Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("task-title");
+        titleLabel.getStyleClass().add("task-item-title");
         Label projectLabel = new Label(project);
-        projectLabel.getStyleClass().add("task-project");
-        content.getChildren().addAll(titleLabel, projectLabel);
+        projectLabel.getStyleClass().add("task-item-project");
+        titleBox.getChildren().addAll(titleLabel, projectLabel);
 
-        HBox spacer = new HBox();
+        Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Label tagLabel = new Label(tag);
-        tagLabel.getStyleClass().add("task-tag");
+        tagLabel.getStyleClass().add("task-item-status");
 
         Label dateLabel = new Label(date);
-        dateLabel.getStyleClass().add("task-date");
+        dateLabel.getStyleClass().add("task-item-date");
 
-        item.getChildren().addAll(checkbox, content, spacer, tagLabel, dateLabel);
-        return item;
-    }
-
-    private void showCreateOrganizationModal() {
-        new CreateOrganizationModal(organizationService, () -> {
-            // Refresh dashboard
-            // Ideally we should have a refresh method here too, or re-instantiate the view.
-            // For now, let's just reload the org section if possible, but DashboardView
-            // doesn't have a clear method.
-            // Let's reload the whole view via MainLayout if possible, but we don't have
-            // reference to MainLayout here.
-            // Wait, DashboardView is created by MainLayout.
-            // Maybe we should pass a refresh callback or just refresh the specific
-            // container?
-            // DashboardView extends VBox, so we can clear and rebuild, but constructor does
-            // the building.
-            // Let's add a refresh method to DashboardView.
-            refresh();
-        }).show();
-    }
-
-    private void showJoinOrganizationModal() {
-        new JoinOrganizationModal(organizationService, this::refresh).show();
-    }
-
-    public void refresh() {
-        getChildren().clear();
-        // Re-run constructor logic
-        // My Organizations Section
-        VBox orgSection = createSectionHeader("My Organizations", true);
-        FlowPane orgContainer = new FlowPane();
-        orgContainer.setHgap(20);
-        orgContainer.setVgap(20);
-        loadOrganizations(orgContainer);
-        orgSection.getChildren().add(orgContainer);
-
-        // My Projects Section
-        VBox projectSection = createSectionHeader("My Projects", false);
-        FlowPane projectContainer = new FlowPane();
-        projectContainer.setHgap(20);
-        projectContainer.setVgap(20);
-        loadProjects(projectContainer);
-        projectSection.getChildren().add(projectContainer);
-
-        // My Tasks Section
-        VBox taskSection = createSectionHeader("My Tasks", false);
-        VBox taskList = new VBox(10);
-        loadTasks(taskList);
-        taskSection.getChildren().add(taskList);
-
-        getChildren().addAll(orgSection, projectSection, taskSection);
+        row.getChildren().addAll(titleBox, spacer, tagLabel, dateLabel);
+        return row;
     }
 }

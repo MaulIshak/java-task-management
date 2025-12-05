@@ -16,7 +16,6 @@ public class Navbar extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(20);
 
-        // Title (Dynamic)
         titleLabel = new Label("Dashboard");
         titleLabel.getStyleClass().add("navbar-title");
         getChildren().add(titleLabel);

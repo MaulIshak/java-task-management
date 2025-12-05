@@ -77,8 +77,6 @@ public class CreateOrganizationModal {
                     }
                     dialog.close();
                 } catch (Exception ex) {
-                    // Show error (simple alert for now)
-                    // In a real app, show inline error
                     System.err.println("Error creating org: " + ex.getMessage());
                 }
             }

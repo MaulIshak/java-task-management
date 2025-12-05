@@ -1,0 +1,27 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36morg.example:tubes-pbo-task-management[0;1m >----------------[m
+[[1;34mINFO[m] [1mBuilding tubes-pbo-task-management 1.0-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-clean-plugin:2.5:clean[m [1m(default-clean)[m @ [36mtubes-pbo-task-management[0;1m ---[m
+[[1;34mINFO[m] Deleting /home/farrasfadhils/Documents/java-task-management/target
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m>>> [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[0;1m > [0;1mprocess-classes[m @ [36mtubes-pbo-task-management[0;1m >>>[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:2.6:resources[m [1m(default-resources)[m @ [36mtubes-pbo-task-management[0;1m ---[m
+[[1;34mINFO[m] Using 'UTF-8' encoding to copy filtered resources.
+[[1;34mINFO[m] Copying 13 resources
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.1:compile[m [1m(default-compile)[m @ [36mtubes-pbo-task-management[0;1m ---[m
+[[1;34mINFO[m] Changes detected - recompiling the module!
+[[1;34mINFO[m] Compiling 41 source files to /home/farrasfadhils/Documents/java-task-management/target/classes
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m<<< [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[0;1m < [0;1mprocess-classes[m @ [36mtubes-pbo-task-management[0;1m <<<[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[m @ [36mtubes-pbo-task-management[0;1m ---[m
+Dec 05, 2025 7:01:31 AM javafx.css.CssParser declaration
+WARNING: CSS Error parsing '*{-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;}: expected series of <size> while parsing '-fx-border' at [1,79]
+Dec 05, 2025 7:01:31 AM javafx.css.CssParser reportException
+WARNING: Please report java.lang.NullPointerException at:

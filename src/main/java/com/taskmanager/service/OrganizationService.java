@@ -14,19 +14,32 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class OrganizationService {
+public class OrganizationService implements com.taskmanager.model.interfaces.Subject {
+
+    private static OrganizationService instance;
 
     private final OrganizationDAO organizationDAO;
     private final OrganizationMemberDAO memberDAO;
-    private final ProjectDAO projectDAO; 
+    private final ProjectDAO projectDAO;
+    private final java.util.List<com.taskmanager.model.interfaces.Observer> observers = new java.util.ArrayList<>();
 
-    public OrganizationService() {
+    private OrganizationService() {
         this.organizationDAO = new OrganizationDAO();
         this.memberDAO = new OrganizationMemberDAO();
         this.projectDAO = new ProjectDAO();
     }
 
-    public OrganizationService(OrganizationDAO organizationDAO, OrganizationMemberDAO memberDAO, ProjectDAO projectDAO) {
+    public static synchronized OrganizationService getInstance() {
+        if (instance == null) {
+            instance = new OrganizationService();
+        }
+        return instance;
+    }
+
+    // Constructor for dependency injection (optional, can be kept or removed if not
+    // used)
+    public OrganizationService(OrganizationDAO organizationDAO, OrganizationMemberDAO memberDAO,
+            ProjectDAO projectDAO) {
         this.organizationDAO = organizationDAO;
         this.memberDAO = memberDAO;
         this.projectDAO = projectDAO;
@@ -38,6 +51,7 @@ public class OrganizationService {
 
     /**
      * Membuat organisasi baru dan menetapkan pembuatnya sebagai OWNER.
+     * 
      * @param name Nama organisasi.
      * @return Objek Organization yang baru dibuat.
      * @throws Exception Jika validasi gagal atau operasi DB error.
@@ -58,7 +72,7 @@ public class OrganizationService {
         } while (organizationDAO.findByCode(uniqueCode).isPresent());
 
         Organization newOrganization = new Organization(0, name, uniqueCode);
-        newOrganization = organizationDAO.save(newOrganization); 
+        newOrganization = organizationDAO.save(newOrganization);
 
         try {
             memberDAO.addMember(newOrganization.getId(), currentUser.getId(), "OWNER");
@@ -67,6 +81,7 @@ public class OrganizationService {
             throw new Exception("Failed to add user as organization owner. Transaction aborted.");
         }
 
+        notifyObservers();
         return newOrganization;
     }
 
@@ -76,6 +91,7 @@ public class OrganizationService {
 
     /**
      * Bergabung ke organisasi menggunakan kodenya.
+     * 
      * @param organizationCode Kode unik organisasi.
      * @return Objek Organization yang berhasil digabungi.
      * @throws Exception Jika kode tidak valid, atau user sudah menjadi anggota.
@@ -92,15 +108,20 @@ public class OrganizationService {
         }
         Organization organization = orgOpt.get();
 
+        if (memberDAO.isOwner(organization.getId(), currentUser.getId())) {
+            throw new Exception("You are the owner of this organization.");
+        }
+
         if (memberDAO.isMember(organization.getId(), currentUser.getId())) {
             throw new Exception("You are already a member of " + organization.getOrgName());
         }
         try {
-            memberDAO.addMember(organization.getId(), currentUser.getId()); 
+            memberDAO.addMember(organization.getId(), currentUser.getId());
         } catch (SQLException e) {
             throw new Exception("Failed to join organization due to database error.");
         }
 
+        notifyObservers();
         return organization;
     }
 
@@ -110,6 +131,7 @@ public class OrganizationService {
 
     /**
      * Mengambil detail lengkap Organization (dengan Projects dan Members).
+     * 
      * @param organizationId ID Organisasi.
      * @return Objek Organization yang sudah di-hydrate.
      * @throws Exception Jika Organization tidak ditemukan.
@@ -124,17 +146,17 @@ public class OrganizationService {
         Organization organization = orgOpt.get();
         organization.setProjects(projectDAO.findByOrganizationId(organizationId));
         organization.setMembers(memberDAO.findMembersByOrganizationId(organizationId));
-        
+
         return organization;
     }
-
 
     // ===========================================
     // 4. GET ORGANIZATION LIST FOR CURRENT USER (Utility untuk View)
     // ===========================================
-    
+
     /**
      * Mengambil semua Organization yang diikuti oleh user yang sedang login.
+     * 
      * @return List Organization.
      * @throws Exception Jika tidak ada user yang login.
      */
@@ -143,13 +165,43 @@ public class OrganizationService {
             throw new Exception("User must be logged in.");
         }
         User currentUser = UserSession.getInstance().getCurrentUser();
-        
+
         List<Integer> orgIds = memberDAO.findOrganizationIdsByUserId(currentUser.getId());
-        
+
         return orgIds.stream()
                 .map(organizationDAO::findById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Memeriksa apakah user yang sedang login adalah pemilik organisasi.
+     * 
+     * @param organizationId ID Organisasi
+     * @return true jika owner.
+     */
+    public boolean isCurrentUserOwner(int organizationId) {
+        if (!UserSession.getInstance().isLoggedIn()) {
+            return false;
+        }
+        return memberDAO.isOwner(organizationId, UserSession.getInstance().getCurrentUser().getId());
+    }
+
+    @Override
+    public void registerObserver(com.taskmanager.model.interfaces.Observer o) {
+        observers.add(o);
+    }
+
+    @Override
+    public void removeObserver(com.taskmanager.model.interfaces.Observer o) {
+        observers.remove(o);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (com.taskmanager.model.interfaces.Observer observer : observers) {
+            observer.update();
+        }
     }
 }

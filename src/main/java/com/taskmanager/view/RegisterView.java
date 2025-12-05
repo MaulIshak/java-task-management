@@ -10,17 +10,19 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class RegisterView extends VBox {
-    private final MainLayout mainLayout;
+public class RegisterView extends VBox implements View {
     private final AuthService authService;
 
-    public RegisterView(MainLayout mainLayout) {
-        this.mainLayout = mainLayout;
-        this.authService = new AuthService();
+    public RegisterView(AuthService authService) {
+        this.authService = authService;
+        render();
+    }
 
+    @Override
+    public void render() {
+        getChildren().clear();
         setAlignment(Pos.CENTER);
         setSpacing(10);
-        getStyleClass().add("register-view");
 
         // card
         VBox card = new VBox(15);
@@ -74,30 +76,25 @@ public class RegisterView extends VBox {
         Label errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
 
-        if (passwordField.getText().equals(confirmPasswordField.getText()) && passwordField.getText().length() >= 8) {
-            confirmPasswordErrorLabel.setTextFill(Color.GREEN);
-            confirmPasswordErrorLabel.setText("Passwords match");
-        } else {
-            confirmPasswordErrorLabel.setTextFill(Color.RED);
-            confirmPasswordErrorLabel.setText("Passwords do not match");
-        }
-
         Button registerButton = new Button("Register");
         registerButton.setMaxWidth(Double.MAX_VALUE);
         registerButton.setStyle(
                 "-fx-background-color: #007bff; -fx-text-fill: white; -fx-padding: 10; -fx-background-radius: 5; -fx-font-weight: bold; -fx-cursor: hand;");
 
         registerButton.setOnAction(e -> {
+            if (!passwordField.getText().equals(confirmPasswordField.getText())) {
+                confirmPasswordErrorLabel.setText("Passwords do not match");
+                return;
+            }
             try {
                 authService.register(nameField.getText(), emailField.getText(), passwordField.getText());
                 errorLabel.setTextFill(Color.GREEN);
                 errorLabel.setText("Registration successful!");
 
-                // Use a separate thread to wait before switching view to avoid blocking UI
                 new Thread(() -> {
                     try {
                         Thread.sleep(1000);
-                        javafx.application.Platform.runLater(() -> mainLayout.showLogin());
+                        javafx.application.Platform.runLater(() -> MainLayout.getInstance().showLogin());
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
@@ -110,13 +107,14 @@ public class RegisterView extends VBox {
         });
 
         Button backToLoginButton = new Button("Back to Login");
-        backToLoginButton.setOnAction(e -> mainLayout.showLogin());
+        backToLoginButton.setOnAction(e -> MainLayout.getInstance().showLogin());
         backToLoginButton.setMaxWidth(Double.MAX_VALUE);
         backToLoginButton.setStyle(
                 "-fx-background-color: transparent; -fx-text-fill: #007bff; -fx-padding: 10; -fx-background-radius: 5; -fx-cursor: hand;");
 
         card.getChildren().addAll(hbox, nameBox, nameField, emailBox, emailField, passwordBox, passwordField,
-                confirmPasswordBox, confirmPasswordField, registerButton, backToLoginButton, errorLabel);
+                confirmPasswordBox, confirmPasswordField, confirmPasswordErrorLabel, registerButton, backToLoginButton,
+                errorLabel);
         getChildren().add(card);
     }
 
@@ -131,7 +129,7 @@ public class RegisterView extends VBox {
         field.setPromptText(prompt);
         field.setMaxWidth(Double.MAX_VALUE);
         field.setStyle(
-                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: lightgray; -fx-border-width: 1; -fx-border-style: solid;");
         field.getStyleClass().add("text-field");
         return field;
     }
@@ -141,7 +139,7 @@ public class RegisterView extends VBox {
         field.setPromptText(prompt);
         field.setMaxWidth(Double.MAX_VALUE);
         field.setStyle(
-                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: lightgray; -fx-border-width: 1; -fx-border-style: solid;");
         field.getStyleClass().add("text-field");
         return field;
     }

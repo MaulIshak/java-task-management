@@ -26,11 +26,18 @@ public class CreateProjectModal {
     private final ProjectService projectService;
     private final OrganizationService organizationService;
     private final Runnable onSuccess;
+    private Organization preSelectedOrg;
 
     public CreateProjectModal(ProjectService projectService, OrganizationService organizationService,
             Runnable onSuccess) {
+        this(projectService, organizationService, null, onSuccess);
+    }
+
+    public CreateProjectModal(ProjectService projectService, OrganizationService organizationService,
+            Organization preSelectedOrg, Runnable onSuccess) {
         this.projectService = projectService;
         this.organizationService = organizationService;
+        this.preSelectedOrg = preSelectedOrg;
         this.onSuccess = onSuccess;
     }
 
@@ -67,7 +74,16 @@ public class CreateProjectModal {
         try {
             List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
             orgComboBox.getItems().addAll(orgs);
-            if (!orgs.isEmpty()) {
+
+            if (preSelectedOrg != null) {
+                // Find and select the pre-selected org
+                for (Organization org : orgs) {
+                    if (org.getId() == preSelectedOrg.getId()) {
+                        orgComboBox.getSelectionModel().select(org);
+                        break;
+                    }
+                }
+            } else if (!orgs.isEmpty()) {
                 orgComboBox.getSelectionModel().selectFirst();
             }
         } catch (Exception e) {
@@ -82,7 +98,7 @@ public class CreateProjectModal {
 
             @Override
             public Organization fromString(String string) {
-                return null; // Not needed
+                return null;
             }
         });
         orgGroup.getChildren().addAll(orgLabel, orgComboBox);

@@ -2,127 +2,181 @@ package com.taskmanager.view;
 
 import com.taskmanager.model.Organization;
 import com.taskmanager.model.Project;
+import com.taskmanager.model.User;
+import com.taskmanager.model.interfaces.Observer;
 import com.taskmanager.service.OrganizationService;
 import com.taskmanager.service.ProjectService;
 import com.taskmanager.util.UserSession;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Sidebar extends VBox {
-
-    private final MainLayout mainLayout;
-    private final OrganizationService organizationService;
-    private final ProjectService projectService;
-
+public class Sidebar extends VBox implements Observer {
+    Label name;
+    private User currentUser;
     private VBox orgListContainer;
     private VBox projectListContainer;
 
-    public Sidebar(MainLayout mainLayout, OrganizationService organizationService, ProjectService projectService) {
-        this.mainLayout = mainLayout;
+    private final Map<ViewName, Button> navButtons = new HashMap<>();
+
+    private final OrganizationService organizationService;
+    private final ProjectService projectService;
+
+    public Sidebar(OrganizationService organizationService, ProjectService projectService) {
         this.organizationService = organizationService;
         this.projectService = projectService;
 
+        name = new Label();
+        name.getStyleClass().add("sidebar-profile-name");
+
         getStyleClass().add("sidebar");
-        setSpacing(5);
+        setSpacing(12);
+        setPadding(new Insets(15));
         setAlignment(Pos.TOP_LEFT);
 
+        this.organizationService.registerObserver(this);
+        this.projectService.registerObserver(this);
+        UserSession.getInstance().registerObserver(this);
+        AppState.getInstance().registerObserver(this);
+
+        setupLayout();
+        update();
+    }
+
+    private void setupLayout() {
         getChildren().add(createLogo());
+        addNavButton("Dashboard", ViewName.DASHBOARD);
 
-        // Dashboard Link
-        addNavButton("Dashboard", "Dashboard", true);
-
-        // Organizations Section
-        createSectionHeader("ORGANIZATIONS", () -> showCreateOrganizationModal());
-        orgListContainer = new VBox(5);
+        createSectionHeader("ORGANIZATIONS", this::showCreateOrganizationModal);
+        orgListContainer = new VBox(4);
         getChildren().add(orgListContainer);
 
-        // Projects Section
-        createSectionHeader("PROJECTS", () -> showCreateProjectModal());
-        projectListContainer = new VBox(5);
+        createSectionHeader("PROJECTS", this::showCreateProjectModal);
+        projectListContainer = new VBox(4);
         getChildren().add(projectListContainer);
 
-        // Spacer to push profile to bottom
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
         getChildren().add(spacer);
 
         getChildren().add(createProfileSection());
-
-        // Initial Load
-        refresh();
     }
 
-    public void refresh() {
-        updateOrganizations();
-        updateProjects();
+    private final Map<Integer, Button> orgButtons = new HashMap<>();
+    private final Map<Integer, Button> projectButtons = new HashMap<>();
+
+    @Override
+    public void update() {
+        if (UserSession.getInstance().isLoggedIn()) {
+            if (UserSession.getInstance().getCurrentUser() != null) {
+                name.setText(UserSession.getInstance().getCurrentUser().getName());
+            }
+            updateOrganizations();
+            updateProjects();
+
+            ViewName currentView = AppState.getInstance().getCurrentView();
+            if (currentView != null) {
+                setActive(currentView);
+            }
+        } else {
+            // Clear data on logout
+            name.setText("");
+            orgListContainer.getChildren().clear();
+            projectListContainer.getChildren().clear();
+            orgButtons.clear();
+            projectButtons.clear();
+        }
     }
 
     private void updateOrganizations() {
         orgListContainer.getChildren().clear();
+        orgButtons.clear();
+        List<Organization> list;
         try {
-            List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
-            if (orgs.isEmpty()) {
-                orgListContainer.getChildren()
-                        .add(createEmptyStateButton("Add Organization", () -> showCreateOrganizationModal()));
-            } else {
-                for (Organization org : orgs) {
-                    addNavButton(org.getOrgName(), "Organization:" + org.getId(), false, orgListContainer);
-                }
-            }
+            list = organizationService.getOrganizationsByCurrentUser();
         } catch (Exception e) {
             e.printStackTrace();
-            // Handle error (maybe show a label)
+            return;
         }
+
+        if (list.isEmpty()) {
+            orgListContainer.getChildren()
+                    .add(createEmptyStateButton("Add Organization", this::showCreateOrganizationModal));
+            return;
+        }
+
+        list.forEach(org -> {
+            Button btn = new Button(org.getOrgName());
+            btn.getStyleClass().add("sidebar-button");
+            btn.setMaxWidth(Double.MAX_VALUE);
+
+            btn.setOnAction(e -> {
+                AppState.getInstance().setCurrentOrganization(org);
+                AppState.getInstance().setCurrentProject(null);
+                AppState.getInstance().switchView(ViewName.PROJECTS);
+            });
+
+            orgButtons.put(org.getId(), btn);
+            orgListContainer.getChildren().add(btn);
+        });
     }
 
     private void updateProjects() {
         projectListContainer.getChildren().clear();
-        // TODO: Logic to get all projects across organizations or filtered?
-        // For now, let's assume we show projects from all organizations the user is
-        // part of,
-        // OR we might want to show projects only when an organization is selected.
-        // Based on requirements: "Projects (ikon tambah) (jika data kosong...)"
-        // It seems to imply a global list or context-aware.
-        // Let's implement a simple fetch for now.
-        // Since ProjectService.getProjectsByOrganization requires orgId, we might need
-        // a way to get all projects.
-        // Or maybe we only show projects if we are in an Organization context?
-        // The prompt says: "user klik card organization tersebut dan pindah ke
-        // halaman... isinya hanya berisi Projects... dibawahnya berisi list projek
-        // projeknya"
-        // But the sidebar also has a Projects section.
-        // Let's assume for the sidebar, it shows "My Projects" (assigned to user) or
-        // similar.
-        // But the service doesn't have "getProjectsByUser".
-        // Let's leave it empty or show a placeholder for now if no specific logic is
-        // provided.
-        // Wait, the requirement says "Projects (ikon tambah)".
-        // If I can't fetch all projects easily, I'll just show the empty state or a
-        // placeholder.
+        projectButtons.clear();
+        List<Project> list = new ArrayList<>();
+        try {
+            if (AppState.getInstance().getCurrentOrganization() != null) {
+                list = projectService
+                        .getProjectsByOrganization(AppState.getInstance().getCurrentOrganization().getId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
 
-        // For now, let's just show the empty state if we can't fetch easily, or try to
-        // fetch if possible.
-        // Let's assume we want to show projects from the first organization found, or
-        // just empty for now until we have a better query.
+        if (list.isEmpty()) {
+            if (AppState.getInstance().getCurrentOrganization() != null &&
+                    organizationService.isCurrentUserOwner(AppState.getInstance().getCurrentOrganization().getId())) {
+                projectListContainer.getChildren()
+                        .add(createEmptyStateButton("Add Project", this::showCreateProjectModal));
+            } else {
+                Label emptyLabel = new Label("No projects found.");
+                emptyLabel.getStyleClass().add("sidebar-label");
+                projectListContainer.getChildren().add(emptyLabel);
+            }
+            return;
+        }
 
-        // Actually, let's just show the empty state button for now as a default if no
-        // data.
-        projectListContainer.getChildren().add(createEmptyStateButton("Add Project", () -> showCreateProjectModal()));
+        list.forEach(project -> {
+            Button btn = new Button(project.getName());
+            btn.getStyleClass().add("sidebar-button");
+            btn.setMaxWidth(Double.MAX_VALUE);
+
+            btn.setOnAction(e -> {
+                AppState.getInstance().setCurrentOrganization(AppState.getInstance().getCurrentOrganization());
+                AppState.getInstance().setCurrentProject(project);
+                AppState.getInstance().switchView(ViewName.PROJECT_DETAIL);
+            });
+
+            projectButtons.put(project.getId(), btn);
+            projectListContainer.getChildren().add(btn);
+        });
     }
 
     private void createSectionHeader(String title, Runnable onAddAction) {
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(10, 20, 5, 20));
+        header.setPadding(new Insets(8, 0, 4, 0));
 
         Label label = new Label(title);
         label.getStyleClass().add("sidebar-section-label");
@@ -130,92 +184,118 @@ public class Sidebar extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = new Button("+");
-        addBtn.getStyleClass().add("sidebar-add-button"); // Need to define this style
-        addBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #888; -fx-cursor: hand; -fx-padding: 0;");
-        addBtn.setOnAction(e -> onAddAction.run());
+        header.getChildren().addAll(label, spacer);
 
-        header.getChildren().addAll(label, spacer, addBtn);
+        if (onAddAction != null) {
+            // Logic khusus untuk header PROJECTS
+            if (title.equals("PROJECTS")) {
+                if (AppState.getInstance().getCurrentOrganization() != null &&
+                        organizationService
+                                .isCurrentUserOwner(AppState.getInstance().getCurrentOrganization().getId())) {
+                    Button addBtn = new Button("+");
+                    addBtn.getStyleClass().add("sidebar-add-button");
+                    addBtn.setOnAction(e -> onAddAction.run());
+                    header.getChildren().add(addBtn);
+                }
+            } else {
+                // Untuk ORGANIZATIONS selalu tampil (atau sesuaikan logic jika perlu)
+                Button addBtn = new Button("+");
+                addBtn.getStyleClass().add("sidebar-add-button");
+                addBtn.setOnAction(e -> onAddAction.run());
+                header.getChildren().add(addBtn);
+            }
+        }
         getChildren().add(header);
     }
 
     private Button createEmptyStateButton(String text, Runnable action) {
         Button btn = new Button("+ " + text);
+        btn.getStyleClass().add("sidebar-empty-button");
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.getStyleClass().add("sidebar-empty-button"); // Need to define this style
-        // dashed border style
-        btn.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #888; -fx-border-style: dashed; -fx-border-width: 1; -fx-border-radius: 5; -fx-text-fill: #888; -fx-cursor: hand;");
         btn.setOnAction(e -> action.run());
         return btn;
     }
 
-    private void showCreateOrganizationModal() {
-        new CreateOrganizationModal(organizationService, this::refresh).show();
-    }
-
-    private void showCreateProjectModal() {
-        new CreateProjectModal(projectService, organizationService, this::refresh).show();
-    }
-
     private HBox createLogo() {
-        HBox logoBox = new HBox(10);
-        logoBox.setAlignment(Pos.CENTER_LEFT);
-        logoBox.setPadding(new Insets(0, 0, 20, 0));
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER_LEFT);
 
-        Label logoIcon = new Label("Z");
-        logoIcon.setStyle(
-                "-fx-background-color: #2962ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 5 10; -fx-background-radius: 5;");
+        Label icon = new Label("Z");
+        icon.getStyleClass().add("sidebar-logo-icon");
 
-        Label logoText = new Label("Zenith");
-        logoText.getStyleClass().add("sidebar-logo");
+        Label text = new Label("Zenith");
+        text.getStyleClass().add("sidebar-logo");
 
-        logoBox.getChildren().addAll(logoIcon, logoText);
-        return logoBox;
+        box.getChildren().addAll(icon, text);
+        return box;
     }
 
     private HBox createProfileSection() {
-        HBox profileBox = new HBox(10);
-        profileBox.setAlignment(Pos.CENTER_LEFT);
-        profileBox.setPadding(new Insets(20, 0, 0, 0));
-        profileBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 1 0 0 0;");
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.getStyleClass().add("sidebar-profile-section");
 
         Circle avatar = new Circle(15);
-        avatar.setStyle("-fx-fill: #333;");
+        avatar.setStyle("-fx-fill:#333;");
 
-        VBox userInfo = new VBox(2);
-        Label userName = new Label(UserSession.getInstance().getCurrentUser().getName());
-        userName.setStyle("-fx-font-weight: bold; -fx-text-fill: #333;");
-        Label userAction = new Label("View profile");
-        userAction.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
-        userInfo.getChildren().addAll(userName, userAction);
+        Button logout = new Button("Logout");
+        logout.getStyleClass().add("sidebar-logout-button");
+        logout.setOnAction(e -> {
+            AppState.getInstance().logout();
+            UserSession.getInstance().endSession();
+        });
 
-        profileBox.getChildren().addAll(avatar, userInfo);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button logoutBtn = new Button("Logout");
-        logoutBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4444; -fx-font-size: 11px;");
-        logoutBtn.setOnAction(e -> UserSession.getInstance().endSession());
-
-        HBox logoutBox = new HBox(logoutBtn);
-        logoutBox.setAlignment(Pos.CENTER_RIGHT);
-        HBox.setHgrow(logoutBox, Priority.ALWAYS);
-
-        profileBox.getChildren().add(logoutBox);
-        return profileBox;
+        box.getChildren().addAll(avatar, name, spacer, logout);
+        return box;
     }
 
-    private void addNavButton(String label, String viewName, boolean isActive) {
-        addNavButton(label, viewName, isActive, this);
-    }
-
-    private void addNavButton(String label, String viewName, boolean isActive, VBox container) {
+    private Button addNavButton(String label, ViewName viewName) {
         Button btn = new Button(label);
         btn.getStyleClass().add("sidebar-button");
-        if (isActive) {
-            btn.getStyleClass().add("active");
-        }
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setOnAction(e -> mainLayout.switchView(viewName));
-        container.getChildren().add(btn);
+        btn.setOnAction(e -> {
+            AppState.getInstance().switchView(viewName);
+        });
+
+        navButtons.put(viewName, btn);
+        getChildren().add(btn);
+        return btn;
+    }
+
+    public void setActive(ViewName name) {
+        // Reset all active states
+        navButtons.values().forEach(b -> b.getStyleClass().remove("active"));
+        orgButtons.values().forEach(b -> b.getStyleClass().remove("active"));
+        projectButtons.values().forEach(b -> b.getStyleClass().remove("active"));
+
+        if (navButtons.containsKey(name)) {
+            navButtons.get(name).getStyleClass().add("active");
+        } else if (name == ViewName.PROJECTS) {
+            Organization currentOrg = AppState.getInstance().getCurrentOrganization();
+            if (currentOrg != null && orgButtons.containsKey(currentOrg.getId())) {
+                orgButtons.get(currentOrg.getId()).getStyleClass().add("active");
+            }
+        } else if (name == ViewName.PROJECT_DETAIL) {
+            Project currentProject = AppState.getInstance().getCurrentProject();
+            if (currentProject != null && projectButtons.containsKey(currentProject.getId())) {
+                projectButtons.get(currentProject.getId()).getStyleClass().add("active");
+            }
+            // Also highlight the organization
+            Organization currentOrg = AppState.getInstance().getCurrentOrganization();
+            if (currentOrg != null && orgButtons.containsKey(currentOrg.getId())) {
+                orgButtons.get(currentOrg.getId()).getStyleClass().add("active");
+            }
+        }
+    }
+
+    private void showCreateOrganizationModal() {
+        new CreateOrganizationModal(organizationService, this::update).show();
+    }
+
+    private void showCreateProjectModal() {
+        new CreateProjectModal(projectService, organizationService, this::update).show();
     }
 }

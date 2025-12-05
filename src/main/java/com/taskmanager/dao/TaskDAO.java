@@ -16,7 +16,9 @@ import java.util.List;
 public class TaskDAO extends AbstractDAO<Task> {
 
     @Override
-    protected String getTableName() { return "tasks"; }
+    protected String getTableName() {
+        return "tasks";
+    }
 
     @Override
     protected String getInsertQuery() {
@@ -29,13 +31,19 @@ public class TaskDAO extends AbstractDAO<Task> {
     }
 
     @Override
-    protected String getSelectByIdQuery() { return "SELECT * FROM tasks WHERE id = ?"; }
+    protected String getSelectByIdQuery() {
+        return "SELECT * FROM tasks WHERE id = ?";
+    }
 
     @Override
-    protected String getSelectAllQuery() { return "SELECT * FROM tasks"; }
+    protected String getSelectAllQuery() {
+        return "SELECT * FROM tasks";
+    }
 
     @Override
-    protected String getDeleteQuery() { return "DELETE FROM tasks WHERE id = ?"; }
+    protected String getDeleteQuery() {
+        return "DELETE FROM tasks WHERE id = ?";
+    }
 
     @Override
     protected void setStatementParameters(PreparedStatement stmt, Task task) throws SQLException {
@@ -75,10 +83,10 @@ public class TaskDAO extends AbstractDAO<Task> {
 
         // Handle Enum
         String statusStr = rs.getString("status");
-        System.out.println("statusStr: "+ statusStr);
+        System.out.println("statusStr: " + statusStr);
         // (on progress -> ON_PROGRESS)
         TaskStatus status = TaskStatus.valueOf(statusStr.toUpperCase().replace(" ", "_"));
-        System.out.println("status: "+ status);
+        System.out.println("status: " + status);
         // Handle Relasi User (Assignee)
         User assignee = null;
         int assigneeId = rs.getInt("assignee_id");

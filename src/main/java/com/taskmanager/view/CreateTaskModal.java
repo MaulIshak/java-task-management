@@ -109,7 +109,7 @@ public class CreateTaskModal {
         Label assigneeLabel = new Label("Assignee");
         assigneeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
         ComboBox<String> assigneeBox = new ComboBox<>();
-        // TODO: Load members from project/org
+
         assigneeBox.getItems().add("Me");
         assigneeBox.setValue("Me");
         assigneeGroup.getChildren().addAll(assigneeLabel, assigneeBox);
@@ -131,10 +131,7 @@ public class CreateTaskModal {
             if (title != null && !title.trim().isEmpty()) {
                 try {
                     LocalDate dueDate = datePicker.getValue() != null ? datePicker.getValue() : LocalDate.now();
-                    // Assuming assignee is current user for "Me" or null if not selected properly
-                    // For now, let's pass null or current user if "Me" is selected.
-                    // TaskService expects User object.
-                    // We can get current user from UserSession.
+        
                     com.taskmanager.model.User assignee = null;
                     if ("Me".equals(assigneeBox.getValue())) {
                         assignee = com.taskmanager.util.UserSession.getInstance().getCurrentUser();

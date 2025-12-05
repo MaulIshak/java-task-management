@@ -10,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -38,8 +39,8 @@ public class JoinOrganizationModal {
             }
         });
 
-        VBox dialogVbox = new VBox(20);
-        dialogVbox.setMaxSize(400, 250);
+        VBox dialogVbox = new VBox(15);
+        dialogVbox.setMaxSize(350, 250);
         dialogVbox.setAlignment(Pos.TOP_LEFT);
         dialogVbox.setPadding(new Insets(30));
         dialogVbox.setStyle(
@@ -48,55 +49,58 @@ public class JoinOrganizationModal {
         Label titleLabel = new Label("Join Organization");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
-        VBox inputGroup = new VBox(5);
+        VBox codeGroup = new VBox(5);
         Label codeLabel = new Label("Organization Code");
         codeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
         TextField codeField = new TextField();
         codeField.setPromptText("Enter organization code");
         codeField.setStyle("-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #ccc; -fx-border-radius: 5;");
-        inputGroup.getChildren().addAll(codeLabel, codeField);
+        codeGroup.getChildren().addAll(codeLabel, codeField);
+
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setWrapText(true);
 
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #666; -fx-cursor: hand;");
-        cancelBtn.setOnAction(e -> dialog.close());
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #666; -fx-cursor: hand;");
+        cancelButton.setOnAction(e -> dialog.close());
 
-        Button joinBtn = new Button("Join");
-        joinBtn.setStyle(
+        Button joinButton = new Button("Join");
+        joinButton.setStyle(
                 "-fx-background-color: #2962ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 5; -fx-cursor: hand;");
-        joinBtn.setOnAction(e -> {
-            String code = codeField.getText();
-            if (code != null && !code.trim().isEmpty()) {
-                try {
-                    organizationService.joinOrganization(code);
-                    if (onSuccess != null) {
-                        onSuccess.run();
-                    }
-                    dialog.close();
-                } catch (Exception ex) {
-                    System.err.println("Error joining org: " + ex.getMessage());
+        joinButton.setOnAction(e -> {
+            try {
+                organizationService.joinOrganization(codeField.getText());
+                if (onSuccess != null) {
+                    onSuccess.run();
                 }
+                dialog.close();
+            } catch (Exception ex) {
+                errorLabel.setText(ex.getMessage());
             }
         });
 
-        buttonBox.getChildren().addAll(cancelBtn, joinBtn);
+        buttonBox.getChildren().addAll(cancelButton, joinButton);
 
-        dialogVbox.getChildren().addAll(titleLabel, inputGroup, buttonBox);
+        dialogVbox.getChildren().addAll(titleLabel, codeGroup, errorLabel, buttonBox);
         root.getChildren().add(dialogVbox);
 
         Scene dialogScene = new Scene(root);
         dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         dialog.setScene(dialogScene);
 
-        if (Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst().isPresent()) {
+        if (Stage.getWindows().stream().anyMatch(javafx.stage.Window::isShowing)) {
             javafx.stage.Window owner = Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
-                    .get();
-            dialog.setX(owner.getX());
-            dialog.setY(owner.getY());
-            dialog.setWidth(owner.getWidth());
-            dialog.setHeight(owner.getHeight());
+                    .orElse(null);
+            if (owner != null) {
+                dialog.setX(owner.getX());
+                dialog.setY(owner.getY());
+                dialog.setWidth(owner.getWidth());
+                dialog.setHeight(owner.getHeight());
+            }
         } else {
             dialog.setWidth(800);
             dialog.setHeight(600);

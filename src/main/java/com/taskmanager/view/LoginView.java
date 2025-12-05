@@ -1,7 +1,7 @@
 package com.taskmanager.view;
 
 import com.taskmanager.service.AuthService;
-import com.taskmanager.util.UserSession;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -11,17 +11,19 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class LoginView extends VBox {
-    private final MainLayout mainLayout;
+public class LoginView extends VBox implements View {
     private final AuthService authService;
 
-    public LoginView(MainLayout mainLayout) {
-        this.mainLayout = mainLayout;
-        this.authService = new AuthService();
+    public LoginView(AuthService authService) {
+        this.authService = authService;
+        render();
+    }
 
+    @Override
+    public void render() {
+        getChildren().clear();
         setAlignment(Pos.CENTER);
         setSpacing(10);
-        getStyleClass().add("login-view");
 
         // card
         VBox card = new VBox(15);
@@ -66,7 +68,6 @@ public class LoginView extends VBox {
         loginButton.setOnAction(e -> {
             try {
                 authService.login(emailField.getText(), passwordField.getText());
-                // Observer in MainLayout will handle the view switch
             } catch (Exception ex) {
                 errorLabel.setText(ex.getMessage());
             }
@@ -74,7 +75,7 @@ public class LoginView extends VBox {
 
         Button goToRegisterButton = new Button("Don't have an account? Register");
         goToRegisterButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #007bff; -fx-cursor: hand;");
-        goToRegisterButton.setOnAction(e -> mainLayout.showRegister());
+        goToRegisterButton.setOnAction(e -> MainLayout.getInstance().showRegister());
 
         card.getChildren().addAll(titleBox, emailBox, emailField, passwordBox, passwordField, loginButton,
                 goToRegisterButton, errorLabel);
@@ -92,7 +93,7 @@ public class LoginView extends VBox {
         field.setPromptText(prompt);
         field.setMaxWidth(Double.MAX_VALUE);
         field.setStyle(
-                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: lightgray; -fx-border-width: 1; -fx-border-style: solid;");
         field.getStyleClass().add("text-field");
         return field;
     }
@@ -102,7 +103,7 @@ public class LoginView extends VBox {
         field.setPromptText(prompt);
         field.setMaxWidth(Double.MAX_VALUE);
         field.setStyle(
-                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border: 1px solid lightgray; -fx-box-shadow: none;");
+                "-fx-padding: 10; -fx-background-radius: 5; -fx-border-radius: 5; -fx-border-color: lightgray; -fx-border-width: 1; -fx-border-style: solid;");
         field.getStyleClass().add("text-field");
         return field;
     }

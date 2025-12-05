@@ -14,13 +14,13 @@ public class OrganizationMemberDAO {
 
     private final Connection connection;
 
-    private final UserDAO userDAO; 
+    private final UserDAO userDAO;
 
     public OrganizationMemberDAO() {
         this.connection = DBConnection.getInstance().getConnection();
         this.userDAO = new UserDAO();
     }
-    
+
     // Constructor untuk testing (dependency injection)
     public OrganizationMemberDAO(Connection connection, UserDAO userDAO) {
         this.connection = connection;
@@ -29,19 +29,21 @@ public class OrganizationMemberDAO {
 
     /**
      * Menambahkan anggota ke organisasi dengan peran (role) default 'MEMBER'.
-     * Catatan: Karena role memiliki default 'MEMBER' di SQL, kita dapat membiarkan SQL
-     * tanpa memasukkan role, kecuali jika kita ingin secara eksplisit menentukan 'OWNER'.
+     * Catatan: Karena role memiliki default 'MEMBER' di SQL, kita dapat membiarkan
+     * SQL
+     * tanpa memasukkan role, kecuali jika kita ingin secara eksplisit menentukan
+     * 'OWNER'.
      *
      * @param organizationId ID Organisasi
-     * @param userId ID User
-     * @param role Peran anggota ('OWNER', 'MEMBER', dll).
+     * @param userId         ID User
+     * @param role           Peran anggota ('OWNER', 'MEMBER', dll).
      */
     public void addMember(int organizationId, int userId, String role) throws SQLException {
         String sql = "INSERT INTO organization_members (organization_id, user_id, role) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, organizationId);
             stmt.setInt(2, userId);
-            stmt.setString(3, role); 
+            stmt.setString(3, role);
             stmt.executeUpdate();
         }
     }
@@ -50,11 +52,12 @@ public class OrganizationMemberDAO {
         // Kita panggil versi 3 parameter dengan default 'MEMBER'
         addMember(organizationId, userId, "MEMBER");
     }
-    
+
     /**
      * Menghapus anggota dari organisasi.
+     * 
      * @param organizationId ID Organisasi
-     * @param userId ID User
+     * @param userId         ID User
      * @return true jika berhasil dihapus, false sebaliknya.
      */
     public boolean removeMember(int organizationId, int userId) {
@@ -71,13 +74,14 @@ public class OrganizationMemberDAO {
 
     /**
      * Mengambil semua user yang menjadi anggota dari suatu organisasi.
+     * 
      * @param organizationId ID Organisasi
      * @return List User yang merupakan anggota.
      */
     public List<User> findMembersByOrganizationId(int organizationId) {
         String sql = "SELECT user_id FROM organization_members WHERE organization_id = ?";
         List<User> members = new ArrayList<>();
-        
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, organizationId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -95,11 +99,12 @@ public class OrganizationMemberDAO {
     // --- Custom Method Baru ---
 
     /**
-     * Memeriksa apakah seorang pengguna sudah menjadi anggota dari organisasi tertentu.
+     * Memeriksa apakah seorang pengguna sudah menjadi anggota dari organisasi
+     * tertentu.
      * Dibutuhkan untuk validasi sebelum Join Organization.
      *
      * @param organizationId ID Organisasi
-     * @param userId ID User
+     * @param userId         ID User
      * @return true jika pengguna adalah anggota, false sebaliknya.
      */
     public boolean isMember(int organizationId, int userId) {
@@ -108,7 +113,7 @@ public class OrganizationMemberDAO {
             stmt.setInt(1, organizationId);
             stmt.setInt(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); 
+                return rs.next();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,5 +142,26 @@ public class OrganizationMemberDAO {
             e.printStackTrace();
         }
         return organizationIds;
+    }
+
+    /**
+     * Memeriksa apakah user adalah OWNER dari organisasi.
+     * 
+     * @param organizationId ID Organisasi
+     * @param userId         ID User
+     * @return true jika user adalah OWNER.
+     */
+    public boolean isOwner(int organizationId, int userId) {
+        String sql = "SELECT 1 FROM organization_members WHERE organization_id = ? AND user_id = ? AND role = 'OWNER'";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, organizationId);
+            stmt.setInt(2, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
