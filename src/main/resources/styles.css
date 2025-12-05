@@ -20,7 +20,7 @@
     -fx-effect: null;
 }
 
-.text-field:focused, .password-field:focused, .text-area:focused {
+.text-field:hover, .password-field:hover, .text-area:hover {
     -fx-border-color: #2962ff;
     -fx-background-color: #ffffff;
     -fx-faint-focus-color: transparent;
@@ -51,7 +51,7 @@
     -fx-text-fill: white;
 }
 .btn-primary:hover { -fx-background-color: #1e50d4; }
-.btn-primary:pressed { -fx-background-color: #153a9e; }
+.btn-primary:active { -fx-background-color: #153a9e; }
 
 /* Success */
 .btn-success {
@@ -383,15 +383,6 @@
 .kanban-board {
     -fx-background-color: transparent;
     -fx-padding: 0;
-}
-
-.kanban-column {
-    -fx-background-color: #f8f9fa; /* Very light grey for column background */
-    -fx-background-radius: 8;
-    -fx-padding: 15;
-    -fx-spacing: 15;
-    -fx-min-width: 320;
-    -fx-pref-width: 320;
 }
 
 .kanban-column-header {

@@ -16,17 +16,20 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Sidebar extends VBox implements Observer {
     Label name;
-    private User currentUser;
     private VBox orgListContainer;
     private VBox projectListContainer;
 
-    private final Map<ViewName, Button> navButtons = new HashMap<>();
+    private static final String SIDEBAR_BUTTON_STYLE = "sidebar-button";
+    private static final String ACTIVE_STYLE = "active";
+
+    private final Map<ViewName, Button> navButtons = new EnumMap<>(ViewName.class);
 
     private final OrganizationService organizationService;
     private final ProjectService projectService;
@@ -116,7 +119,7 @@ public class Sidebar extends VBox implements Observer {
 
         list.forEach(org -> {
             Button btn = new Button(org.getOrgName());
-            btn.getStyleClass().add("sidebar-button");
+            btn.getStyleClass().add(SIDEBAR_BUTTON_STYLE);
             btn.setMaxWidth(Double.MAX_VALUE);
 
             btn.setOnAction(e -> {
@@ -159,7 +162,7 @@ public class Sidebar extends VBox implements Observer {
 
         list.forEach(project -> {
             Button btn = new Button(project.getName());
-            btn.getStyleClass().add("sidebar-button");
+            btn.getStyleClass().add(SIDEBAR_BUTTON_STYLE);
             btn.setMaxWidth(Double.MAX_VALUE);
 
             btn.setOnAction(e -> {
@@ -254,11 +257,9 @@ public class Sidebar extends VBox implements Observer {
 
     private Button addNavButton(String label, ViewName viewName) {
         Button btn = new Button(label);
-        btn.getStyleClass().add("sidebar-button");
+        btn.getStyleClass().add(SIDEBAR_BUTTON_STYLE);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setOnAction(e -> {
-            AppState.getInstance().switchView(viewName);
-        });
+        btn.setOnAction(e -> AppState.getInstance().switchView(viewName));
 
         navButtons.put(viewName, btn);
         getChildren().add(btn);
@@ -267,26 +268,26 @@ public class Sidebar extends VBox implements Observer {
 
     public void setActive(ViewName name) {
         // Reset all active states
-        navButtons.values().forEach(b -> b.getStyleClass().remove("active"));
-        orgButtons.values().forEach(b -> b.getStyleClass().remove("active"));
-        projectButtons.values().forEach(b -> b.getStyleClass().remove("active"));
+        navButtons.values().forEach(b -> b.getStyleClass().remove(ACTIVE_STYLE));
+        orgButtons.values().forEach(b -> b.getStyleClass().remove(ACTIVE_STYLE));
+        projectButtons.values().forEach(b -> b.getStyleClass().remove(ACTIVE_STYLE));
 
         if (navButtons.containsKey(name)) {
-            navButtons.get(name).getStyleClass().add("active");
+            navButtons.get(name).getStyleClass().add(ACTIVE_STYLE);
         } else if (name == ViewName.PROJECTS) {
             Organization currentOrg = AppState.getInstance().getCurrentOrganization();
             if (currentOrg != null && orgButtons.containsKey(currentOrg.getId())) {
-                orgButtons.get(currentOrg.getId()).getStyleClass().add("active");
+                orgButtons.get(currentOrg.getId()).getStyleClass().add(ACTIVE_STYLE);
             }
         } else if (name == ViewName.PROJECT_DETAIL) {
             Project currentProject = AppState.getInstance().getCurrentProject();
             if (currentProject != null && projectButtons.containsKey(currentProject.getId())) {
-                projectButtons.get(currentProject.getId()).getStyleClass().add("active");
+                projectButtons.get(currentProject.getId()).getStyleClass().add(ACTIVE_STYLE);
             }
             // Also highlight the organization
             Organization currentOrg = AppState.getInstance().getCurrentOrganization();
             if (currentOrg != null && orgButtons.containsKey(currentOrg.getId())) {
-                orgButtons.get(currentOrg.getId()).getStyleClass().add("active");
+                orgButtons.get(currentOrg.getId()).getStyleClass().add(ACTIVE_STYLE);
             }
         }
     }

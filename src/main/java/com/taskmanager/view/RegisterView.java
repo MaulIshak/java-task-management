@@ -96,6 +96,7 @@ public class RegisterView extends VBox implements View {
                         Thread.sleep(1000);
                         javafx.application.Platform.runLater(() -> MainLayout.getInstance().showLogin());
                     } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                         ex.printStackTrace();
                     }
                 }).start();

@@ -24,7 +24,12 @@ import javafx.scene.shape.Circle;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 public class ProjectDetailView extends VBox implements com.taskmanager.model.interfaces.Observer, View {
+
+    private static final Logger LOGGER = Logger.getLogger(ProjectDetailView.class.getName());
 
     private final TaskService taskService;
     private Project project;
@@ -104,19 +109,19 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
 
         List<Task> todoTasks = allTasks.stream()
                 .filter(t -> t.getStatus() == TaskStatus.TODO)
-                .collect(Collectors.toList());
+                .toList();
         List<Task> inProgressTasks = allTasks.stream()
                 .filter(t -> t.getStatus() == TaskStatus.ON_PROGRESS)
-                .collect(Collectors.toList());
+                .toList();
         List<Task> doneTasks = allTasks.stream()
                 .filter(t -> t.getStatus() == TaskStatus.DONE)
-                .collect(Collectors.toList());
+                .toList();
 
         VBox todoCol = createColumn("Todo", todoTasks);
         VBox inProgressCol = createColumn("In Progress", inProgressTasks);
         VBox doneCol = createColumn("Done", doneTasks);
 
-        todoCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));   
+        todoCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));
         inProgressCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));
         doneCol.prefWidthProperty().bind(kanbanBoard.widthProperty().divide(3).subtract(20));
 
@@ -127,9 +132,9 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
 
     private VBox createColumn(String title, List<Task> tasks) {
         VBox column = new VBox(10);
-        column.setMinWidth(250); 
+        column.setMinWidth(250);
         column.getStyleClass().add("kanban-column");
-        VBox.setVgrow(column, Priority.ALWAYS); 
+        VBox.setVgrow(column, Priority.ALWAYS);
 
         // Header
         HBox header = new HBox();
@@ -155,11 +160,11 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
 
         ScrollPane scrollPane = new ScrollPane(taskList);
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false); 
+        scrollPane.setFitToHeight(false);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); 
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        VBox.setVgrow(scrollPane, Priority.ALWAYS); 
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         column.setOnDragOver(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
@@ -175,13 +180,12 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
                 try {
                     int taskId = Integer.parseInt(db.getString());
                     TaskStatus newStatus = null;
-                    if ("Todo".equals(title)) {
+                    if ("Todo".equals(title))
                         newStatus = TaskStatus.TODO;
-                    } else if ("In Progress".equals(title)) {
+                    else if ("In Progress".equals(title))
                         newStatus = TaskStatus.ON_PROGRESS;
-                    } else if ("Done".equals(title)) {
+                    else if ("Done".equals(title))
                         newStatus = TaskStatus.DONE;
-                    }
 
                     if (newStatus != null) {
                         updateTaskStatus(taskId, newStatus);
@@ -218,9 +222,7 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
         optionsMenu.getStyleClass().add("task-menu-button");
 
         MenuItem editItem = new MenuItem("Edit");
-        editItem.setOnAction(e -> {
-            System.out.println("Edit task: " + task.getId());
-        });
+        editItem.setOnAction(e -> LOGGER.info("Edit task feature not implemented yet. Task ID: " + task.getId()));
 
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setOnAction(e -> {
@@ -278,7 +280,8 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
         try {
             Task task = project.getTasks().stream().filter(t -> t.getId() == taskId).findFirst().orElse(null);
             if (task == null) {
-                task = taskService.getTasksByProject(project.getId()).stream().filter(t -> t.getId() == taskId).findFirst().orElse(null);
+                task = taskService.getTasksByProject(project.getId()).stream().filter(t -> t.getId() == taskId)
+                        .findFirst().orElse(null);
             }
 
             if (task != null) {
@@ -294,7 +297,7 @@ public class ProjectDetailView extends VBox implements com.taskmanager.model.int
         if (project != null) {
             new CreateTaskModal(taskService, project.getId(), this::render).show();
         } else {
-            System.err.println("Cannot create task: No project selected.");
+            LOGGER.log(Level.WARNING, "Cannot create task: No project selected.");
         }
     }
 }

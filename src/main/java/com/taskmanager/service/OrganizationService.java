@@ -55,13 +55,13 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
      * @return Objek Organization yang baru dibuat.
      * @throws Exception Jika validasi gagal atau operasi DB error.
      */
-    public Organization createOrganization(String name) throws Exception {
+    public Organization createOrganization(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new Exception("Organization name cannot be empty.");
+            throw new IllegalArgumentException("Organization name cannot be empty.");
         }
 
         if (!UserSession.getInstance().isLoggedIn()) {
-            throw new Exception("User must be logged in to create an organization.");
+            throw new IllegalStateException("User must be logged in to create an organization.");
         }
         User currentUser = UserSession.getInstance().getCurrentUser();
 
@@ -77,7 +77,7 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
             memberDAO.addMember(newOrganization.getId(), currentUser.getId(), "OWNER");
         } catch (SQLException e) {
             organizationDAO.delete(newOrganization.getId());
-            throw new Exception("Failed to add user as organization owner. Transaction aborted.");
+            throw new RuntimeException("Failed to add user as organization owner. Transaction aborted.", e);
         }
 
         notifyObservers();
@@ -95,29 +95,29 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
      * @return Objek Organization yang berhasil digabungi.
      * @throws Exception Jika kode tidak valid, atau user sudah menjadi anggota.
      */
-    public Organization joinOrganization(String organizationCode) throws Exception {
+    public Organization joinOrganization(String organizationCode) {
         if (!UserSession.getInstance().isLoggedIn()) {
-            throw new Exception("User must be logged in to join an organization.");
+            throw new IllegalStateException("User must be logged in to join an organization.");
         }
         User currentUser = UserSession.getInstance().getCurrentUser();
         Optional<Organization> orgOpt = organizationDAO.findByCode(organizationCode.toUpperCase().trim());
 
         if (orgOpt.isEmpty()) {
-            throw new Exception("Organization not found with code: " + organizationCode);
+            throw new IllegalArgumentException("Organization not found with code: " + organizationCode);
         }
         Organization organization = orgOpt.get();
 
         if (memberDAO.isOwner(organization.getId(), currentUser.getId())) {
-            throw new Exception("You are the owner of this organization.");
+            throw new IllegalStateException("You are the owner of this organization.");
         }
 
         if (memberDAO.isMember(organization.getId(), currentUser.getId())) {
-            throw new Exception("You are already a member of " + organization.getOrgName());
+            throw new IllegalStateException("You are already a member of " + organization.getOrgName());
         }
         try {
             memberDAO.addMember(organization.getId(), currentUser.getId());
         } catch (SQLException e) {
-            throw new Exception("Failed to join organization due to database error.");
+            throw new RuntimeException("Failed to join organization due to database error.", e);
         }
 
         notifyObservers();
@@ -135,11 +135,11 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
      * @return Objek Organization yang sudah di-hydrate.
      * @throws Exception Jika Organization tidak ditemukan.
      */
-    public Organization getOrganizationDetails(int organizationId) throws Exception {
+    public Organization getOrganizationDetails(int organizationId) {
         Optional<Organization> orgOpt = organizationDAO.findById(organizationId);
 
         if (orgOpt.isEmpty()) {
-            throw new Exception("Organization not found.");
+            throw new IllegalArgumentException("Organization not found.");
         }
 
         Organization organization = orgOpt.get();
@@ -159,9 +159,9 @@ public class OrganizationService implements com.taskmanager.model.interfaces.Sub
      * @return List Organization.
      * @throws Exception Jika tidak ada user yang login.
      */
-    public List<Organization> getOrganizationsByCurrentUser() throws Exception {
+    public List<Organization> getOrganizationsByCurrentUser() {
         if (!UserSession.getInstance().isLoggedIn()) {
-            throw new Exception("User must be logged in.");
+            throw new IllegalStateException("User must be logged in.");
         }
         User currentUser = UserSession.getInstance().getCurrentUser();
 

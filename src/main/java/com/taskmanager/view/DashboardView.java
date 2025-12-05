@@ -18,7 +18,12 @@ import javafx.scene.layout.*;
 
 import java.util.List;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 public class DashboardView extends VBox implements Observer, View {
+
+    private static final Logger LOGGER = Logger.getLogger(DashboardView.class.getName());
 
     private final OrganizationService organizationService;
     private final ProjectService projectService;
@@ -172,36 +177,36 @@ public class DashboardView extends VBox implements Observer, View {
     private void loadTasks() {
         taskList.getChildren().clear();
 
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            taskList.getChildren().add(new Label("No user logged in."));
+            return;
+        }
+
         try {
-            User currentUser = UserSession.getInstance().getCurrentUser();
-            if (currentUser == null)
+            // Collect all tasks assigned to this user
+            List<Task> userTasks = organizationService.getOrganizationsByCurrentUser().stream()
+                    .flatMap(org -> projectService.getProjectsByOrganization(org.getId()).stream())
+                    .flatMap(project -> taskService.getTasksByProject(project.getId()).stream())
+                    .filter(task -> task.getAssignee() != null && task.getAssignee().getId() == currentUser.getId())
+                    .toList();
+
+            if (userTasks.isEmpty()) {
+                taskList.getChildren().add(new Label("No tasks assigned to you."));
                 return;
-
-            List<Organization> orgs = organizationService.getOrganizationsByCurrentUser();
-
-            boolean hasTasks = false;
-
-            for (Organization org : orgs) {
-                List<Project> projects = projectService.getProjectsByOrganization(org.getId());
-                for (Project proj : projects) {
-                    // Fetch tasks from service
-                    List<Task> tasks = taskService.getTasksByProject(proj.getId());
-                    for (Task task : tasks) {
-                        if (task.getAssignee() != null && task.getAssignee().getId() == currentUser.getId()) {
-                            taskList.getChildren().add(createTaskItem(
-                                    task.getTitle(),
-                                    proj.getName(),
-                                    task.getStatus().toString(),
-                                    task.getDueDate() != null ? task.getDueDate().toString() : "No Date",
-                                    proj.getId())); // Passing project ID
-                            hasTasks = true;
-                        }
-                    }
-                }
             }
 
-            if (!hasTasks) {
-                taskList.getChildren().add(new Label("No tasks assigned to you."));
+            // Display tasks
+            for (Task task : userTasks) {
+                Project proj = projectService.getProjectWithTasks(task.getProjectId()); // optimized per use case
+
+                taskList.getChildren().add(
+                        createTaskItem(
+                                task.getTitle(),
+                                proj.getName(),
+                                task.getStatus().toString(),
+                                task.getDueDate() != null ? task.getDueDate().toString() : "No Date",
+                                proj.getId()));
             }
 
         } catch (Exception e) {
@@ -268,7 +273,7 @@ public class DashboardView extends VBox implements Observer, View {
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    System.out.println("Navigation failed for: " + viewName);
+                    LOGGER.log(Level.WARNING, "Navigation failed for: {0}", viewName);
                 }
             });
         }

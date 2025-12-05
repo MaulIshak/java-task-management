@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 public class JoinOrganizationModal {
 
@@ -92,8 +93,8 @@ public class JoinOrganizationModal {
         dialogScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         dialog.setScene(dialogScene);
 
-        if (Stage.getWindows().stream().anyMatch(javafx.stage.Window::isShowing)) {
-            javafx.stage.Window owner = Stage.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
+        if (Window.getWindows().stream().anyMatch(javafx.stage.Window::isShowing)) {
+            javafx.stage.Window owner = Window.getWindows().stream().filter(javafx.stage.Window::isShowing).findFirst()
                     .orElse(null);
             if (owner != null) {
                 dialog.setX(owner.getX());

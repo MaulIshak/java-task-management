@@ -85,6 +85,7 @@ public class TaskDAO extends AbstractDAO<Task> {
         String statusStr = rs.getString("status");
         // (on progress -> ON_PROGRESS)
         TaskStatus status = TaskStatus.valueOf(statusStr.toUpperCase().replace(" ", "_"));
+        
         // Handle Relasi User (Assignee)
         User assignee = null;
         int assigneeId = rs.getInt("assignee_id");
