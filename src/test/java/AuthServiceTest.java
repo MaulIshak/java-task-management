@@ -142,7 +142,7 @@ class AuthServiceTest {
 
         // Act & Assert
         Exception e = assertThrows(Exception.class, () -> authService.login(email, "pass"));
-        assertEquals("User not found / Invalid credentials", e.getMessage());
+        assertEquals("Invalid credentials", e.getMessage());
     }
 
     @Test
@@ -157,7 +157,7 @@ class AuthServiceTest {
 
         // Act & Assert
         Exception e = assertThrows(Exception.class, () -> authService.login(email, "wrongPass"));
-        assertEquals("Invalid password", e.getMessage());
+        assertEquals("Invalid credentials", e.getMessage());
 
         // Pastikan session tidak terbentuk
         assertFalse(UserSession.getInstance().isLoggedIn());
