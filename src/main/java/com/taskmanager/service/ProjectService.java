@@ -14,18 +14,10 @@ public class ProjectService implements com.taskmanager.model.interfaces.Subject 
 
     private final ProjectDAO projectDAO;
     private final TaskDAO taskDAO;
-    private final TaskDAO taskDAO; // untuk fetch tasks
     private final java.util.List<com.taskmanager.model.interfaces.Observer> observers = new java.util.ArrayList<>();
 
     public ProjectService() {
         this(new ProjectDAO(), new TaskDAO());
-    }
-
-    public static synchronized ProjectService getInstance() {
-        if (instance == null) {
-            instance = new ProjectService();
-        }
-        return instance;
     }
 
     public static synchronized ProjectService getInstance() {

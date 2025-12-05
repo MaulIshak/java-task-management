@@ -18,13 +18,10 @@ public class TaskService implements com.taskmanager.model.interfaces.Subject {
     private final UserDAO userDAO;
     private final java.util.List<com.taskmanager.model.interfaces.Observer> observers = new java.util.ArrayList<>();
 
-    public TaskService() {
-        this(new TaskDAO(), new UserDAO());
     private TaskService() {
         this.taskDAO = new TaskDAO();
         this.userDAO = new UserDAO();
     }
-
 
     public static synchronized TaskService getInstance() {
         if (instance == null) {
