@@ -58,14 +58,21 @@ public class Organization implements BaseEntity, WorkComponent {
     @Override
     public String getName() { return orgName; }
 
+
     @Override
-    public void showDetails() {
-        System.out.println("Organization: " + orgName + " (Code: " + code + ")");
-        for (Project project : projects) {
-            project.showDetails();
+    public double getCompletionPercentage() {
+        if (projects.isEmpty()) {
+            return 0.0;
         }
+
+        double totalPercentage = 0.0;
+        for (Project project : projects) {
+            totalPercentage += project.getCompletionPercentage();
+        }
+
+        return totalPercentage / projects.size();
     }
-    
+
     @Override
     public String toString() {
         return "Organization{id=" + id + ", name='" + orgName + "', code='" + code + "'}";

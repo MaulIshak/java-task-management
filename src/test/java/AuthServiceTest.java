@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,7 +15,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +45,7 @@ class AuthServiceTest {
 
     @Test
     @DisplayName("Register: Sukses membuat user baru")
-    void testRegisterSuccess() throws Exception {
+    void testRegisterSuccess() {
         // Arrange
         String name = "Budi";
         String email = "budi@test.com";
@@ -113,7 +111,7 @@ class AuthServiceTest {
 
     @Test
     @DisplayName("Login: Sukses login dengan kredensial valid")
-    void testLoginSuccess() throws Exception {
+    void testLoginSuccess() {
         // Arrange
         String email = "valid@test.com";
         String rawPassword = "secretPassword";
@@ -142,7 +140,7 @@ class AuthServiceTest {
 
         // Act & Assert
         Exception e = assertThrows(Exception.class, () -> authService.login(email, "pass"));
-        assertEquals("User not found / Invalid credentials", e.getMessage());
+        assertEquals("Invalid credentials", e.getMessage());
     }
 
     @Test
@@ -157,7 +155,7 @@ class AuthServiceTest {
 
         // Act & Assert
         Exception e = assertThrows(Exception.class, () -> authService.login(email, "wrongPass"));
-        assertEquals("Invalid password", e.getMessage());
+        assertEquals("Invalid credentials", e.getMessage());
 
         // Pastikan session tidak terbentuk
         assertFalse(UserSession.getInstance().isLoggedIn());

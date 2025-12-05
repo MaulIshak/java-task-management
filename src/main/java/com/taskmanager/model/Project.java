@@ -46,9 +46,20 @@ public class Project implements WorkComponent, BaseEntity {
     @Override
     public String getName() { return name; }
 
+
     @Override
-    public void showDetails() {
-        System.out.println("Project: " + name);
+    public double getCompletionPercentage() {
+        if (tasks.isEmpty()) {
+            return 0.0; // Hindari division by zero
+        }
+
+        double totalPercentage = 0.0;
+        for (Task task : tasks) {
+            totalPercentage += task.getCompletionPercentage();
+        }
+
+        // Rata-rata aritmatika
+        return totalPercentage / tasks.size();
     }
 
     @Override

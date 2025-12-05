@@ -75,7 +75,6 @@ public class ProjectService implements com.taskmanager.model.interfaces.Subject 
         project.setDescription(newDesc);
 
         projectDAO.save(project);
-        projectDAO.save(project); // Auto Update karena ID != 0
         notifyObservers();
     }
 

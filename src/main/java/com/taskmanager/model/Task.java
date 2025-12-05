@@ -55,8 +55,14 @@ public class Task implements WorkComponent, BaseEntity {
     public String getName() { return title; }
 
     @Override
-    public void showDetails() {
-        System.out.println("Task: " + title + " [" + status + "]");
+    public double getCompletionPercentage() {
+        if (status == null) return 0.0;
+
+        return switch (status) {
+            case DONE -> 100.0;
+            case ON_PROGRESS -> 50.0;
+            default -> 0.0;
+        };
     }
 
     @Override
