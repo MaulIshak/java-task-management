@@ -51,8 +51,7 @@ public class ViewFactory {
             case REGISTER -> new RegisterView(authService);
         };
 
-        if (view != ViewName.PROJECT_DETAIL && view != ViewName.PROJECTS && view != ViewName.LOGIN
-                && view != ViewName.REGISTER) {
+        if (view != ViewName.PROJECT_DETAIL && view != ViewName.PROJECTS && view != ViewName.LOGIN && view != ViewName.REGISTER) {
             viewCache.put(view, loadedView);
         }
         return loadedView;

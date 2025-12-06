@@ -26,11 +26,12 @@ class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;
+    
     @BeforeEach
     void setUp() {
         // Inject mock UserDAO
         authService = new AuthService(userDAO);
-    }
+}
 
     @AfterEach
     void tearDown() {
